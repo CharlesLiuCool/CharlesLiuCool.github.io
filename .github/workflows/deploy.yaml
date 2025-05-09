@@ -29,7 +29,7 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
 
       - name: Build with Trunk
-        run: trunk build --release --public-url https://charlesliucool.github.io/
+        run: trunk build --release --public-url CharlesLiuCool
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
