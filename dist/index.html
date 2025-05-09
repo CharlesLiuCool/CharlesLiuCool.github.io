@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/" />
+
+    <meta charset="utf-8" />
+    <title>Charles' Website</title>
+
+    <link rel="stylesheet" href="/style-73669b0fe1f2da09.css" integrity="sha384-FUe7clk5rrWvt2cb9fsmUMFuF+uO+QO8/H6JkhbZmg4LSuIuIW/r2Z32ZMv0LnW9"/>
+    
+<script type="module">
+import init, * as bindings from '/CharlesLiuCool-c3a811e30fe18772.js';
+const wasm = await init({ module_or_path: '/CharlesLiuCool-c3a811e30fe18772_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+
+    <!-- Background image-->
+    
+
+    <!-- PT Serif-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <!-- Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="modulepreload" href="/CharlesLiuCool-c3a811e30fe18772.js" crossorigin="anonymous" integrity="sha384-n7G0aw10GsNq/rV9tBXteGEqfydyC2DmfLRECyaKajFfZpfotCJMd5hNbaR6LAMl"><link rel="preload" href="/CharlesLiuCool-c3a811e30fe18772_bg.wasm" crossorigin="anonymous" integrity="sha384-VudNm1snIivulrU+R3gjUnGvoCkn77aW+MLUdeUn93wQ4jpxPojHJq1HNtuZu48p" as="fetch" type="application/wasm"></head>
+<body>
+    <main id="root"></main>
+</body>
+</html>
