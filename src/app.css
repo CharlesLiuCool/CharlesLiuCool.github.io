@@ -34,10 +34,55 @@ html {
     overflow-x: hidden;
     margin: 0;
     padding: 0px;
+    cursor: none;
+}
+
+#cursor-container {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+#circularcursor {
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255, 255, 255, 0.255);
+    border: 1px solid white;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    pointer-events: none;
+    position: fixed;
+    z-index: 9999;
+}
+
+.ghost {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.251);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    opacity: 0;
+    animation: ghost-fade 0.7s forwards;
+  }
+  
+@keyframes ghost-fade {
+    0% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+    }
 }
 
 body {
-    background-color: rgb(28, 17, 22);
+    background-color: rgb(0, 0, 0);
     position: relative;
     margin: 0;
     padding: 0px;
@@ -47,13 +92,14 @@ body {
     box-sizing: border-box; /* Ensure padding doesn't affect the element's total height */
     overflow-x: hidden;
     min-height: 100vh;
+    cursor: none;
 }
 
 .background {
     position: relative;
-    background-image: url('images/website_background.jpg');
+    background-image: url('images/wbg.jpg');
     background-size: cover;
-    background-position: center;
+    background-position: clamp(100%, calc(50% - 50vmin), 60%) center;
     margin: 0;
     padding: 0px;
     align-items: center; /* Center content vertically */
@@ -75,6 +121,7 @@ p {
     font-size: 0.5em;
     font-family: 'Montserrat', sans-serif;
     line-height: 1.8;
+    font-size: 3vmin;
 }
 
 /*button {
@@ -100,9 +147,10 @@ p {
 
 .center-left h1 {
     margin-top: 0;
-    font-size: 2em;
+    font-size: 10vmin;
     font-weight: bold;
     margin-bottom: 0.3em;
+    z-index: inherit;
 }
 
 .center-right {
@@ -158,15 +206,18 @@ p {
 
 .menu-container {
     position: absolute; 
-    top: 75%; 
-    left: 40%;
+    top: 70%; 
     text-align: center;
     font-family: 'Montserrat', sans-serif;
-    font-size: 3em;
+    font-size: 5vmin;
     opacity: 0;
     animation: riseIn 0.5s ease-out 0.5s forwards;
     width: fit-content;
     white-space: nowrap;
+}
+
+a {
+    cursor: none;
 }
 
 a:link {
@@ -203,23 +254,47 @@ a:hover {
 
 .projects h1 {
     font-size: 4em;
+    opacity: 0;
     font-family: 'PT Serif', serif;
 }
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0; /* Start as invisible */
+    }
+    100% {
+        opacity: 1; /* Fully visible */
+    }
+}
+
+.fade-in-visible {
+    animation: fadeIn 1s ease-out forwards;
+    opacity: 1;
+  }
 
 .project-item {
     width: 80vw;
     box-sizing: border-box;
-    margin-top: 5%;
+    margin-top: 5vmin;
     align-items: first baseline;
     text-align: left;
     border-radius: 8px;
-    background-color: white;
-    border: 4px solid #42defd; /* light gray border */
+    background-color: rgb(0, 0, 0);
+    opacity: 0.8;
+    border: 4px solid #dfdf41; /* light gray border */
     box-shadow: 0 2px 4px rgba(255, 255, 255, 0.821); /* subtle shadow */
     padding: 40px;
+    color: rgb(255, 255, 255);
+}
+
+.project-item:hover {
+    box-shadow: 0 6px 14px #dfdf41;
 }
 
 .project-item h2 {
     font-family: 'Montserrat', sans-serif;
     text-align: left;
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-bottom: 1.5em;
 }
