@@ -6,13 +6,14 @@
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
+		"predeploy": "gh-pages -d build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"deploy": "gh-pages -d build"
+		"deploy": "yarn run build && gh-pages -d build"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
