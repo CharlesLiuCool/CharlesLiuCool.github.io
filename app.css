@@ -1,0 +1,300 @@
+@import 'tailwindcss';
+
+.page-container {
+	display: flex;
+	flex-direction: column;
+    scroll-behavior: smooth;
+}
+.pt-serif-regular {
+    font-family: "PT Serif", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+.pt-serif-bold {
+    font-family: "PT Serif", serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.pt-serif-regular-italic {
+    font-family: "PT Serif", serif;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.pt-serif-bold-italic {
+    font-family: "PT Serif", serif;
+    font-weight: 700;
+    font-style: italic;
+}
+
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0px;
+    cursor: none;
+}
+
+#cursor-container {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+#circularcursor {
+    margin: 0;
+    padding: 0;
+    background-color: rgba(255, 255, 255, 0.255);
+    border: 1px solid white;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    pointer-events: none;
+    position: fixed;
+    z-index: 9999;
+}
+
+.ghost {
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0.251);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    opacity: 0;
+    animation: ghost-fade 0.7s forwards;
+  }
+  
+@keyframes ghost-fade {
+    0% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+    }
+}
+
+body {
+    background-color: rgb(0, 0, 0);
+    position: relative;
+    margin: 0;
+    padding: 0px;
+    align-items: center; /* Center content vertically */
+    justify-content: flex-start; /* Align content to the left */
+    line-height: 1;
+    box-sizing: border-box; /* Ensure padding doesn't affect the element's total height */
+    overflow-x: hidden;
+    min-height: 100vh;
+    cursor: none;
+}
+
+.background {
+    position: relative;
+    background-image: url('images/wbg.jpg');
+    background-size: cover;
+    background-position: clamp(100%, calc(50% - 50vmin), 60%) center;
+    margin: 0;
+    padding: 0px;
+    align-items: center; /* Center content vertically */
+    justify-content: flex-start; /* Align content to the left */
+    line-height: 1;
+    box-sizing: border-box; /* Ensure padding doesn't affect the element's total height */
+    overflow-x: hidden;
+    height: 100vh;
+}
+
+div {
+    margin-top:15px;
+    text-align:center;
+    color:rgb(255, 255, 255);
+    font-family: 'PT Serif', serif;
+}
+
+p {
+    font-size: 0.5em;
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.8;
+    font-size: 3vmin;
+}
+
+/*button {
+    width:30%;
+    height:100px;
+    font-size:5em;
+    font-family: Georgia, serif;
+    color:rgb(0, 0, 0);
+    text-align:center;
+    background-color:#555555;
+    border-width:5px;
+}*/
+
+
+.center-left {
+    position: absolute;
+    text-align: center;
+    top: 40%;
+    left: 5%;
+    font-size: 2.5em;
+    font-family: 'PT Serif', serif;
+}
+
+.center-left h1 {
+    margin-top: 0;
+    font-size: 10vmin;
+    font-weight: bold;
+    margin-bottom: 0.3em;
+    z-index: inherit;
+}
+
+.center-right {
+    font-size:1.5em;
+    font-family: 'Montserrat', sans-serif;
+    text-align: left;
+    line-height: 1.5em;
+}
+
+.center-right h2 {
+    position: absolute;
+    margin-top: 0;
+    margin-bottom: 0.3em;
+    top: 40vh;
+    right: 15vw;
+    z-index: 1;
+    width: 300px;
+    padding: 10px;
+}
+
+
+.black-box {
+    position: relative; 
+    padding: 0px;
+    margin-top: 0px;
+    background-color: rgb(0, 0, 0);
+    clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 0% 100%);
+    width: 60vw;
+    min-height: 100vh; /* Ensure it takes at least a full screen, but can grow */
+    height: auto; 
+    opacity: 0.60;
+    margin-left: 0;
+    margin-right: auto;
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+    text-align: center; 
+
+    overflow: visible;
+}
+
+@keyframes riseIn {
+    0% {
+        transform: translateY(20px); /* Start 20px below */
+        opacity: 0; /* Start as invisible */
+    }
+    100% {
+        transform: translateY(0); /* End at normal position */
+        opacity: 1; /* Fully visible */
+    }
+}
+
+.menu-container {
+    position: absolute; 
+    top: 70%; 
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 5vmin;
+    opacity: 0;
+    animation: riseIn 0.5s ease-out 0.5s forwards;
+    width: fit-content;
+    white-space: nowrap;
+}
+
+a {
+    cursor: none;
+}
+
+a:link {
+    text-decoration: none;
+    font-family: 'Montserrat', 'sans-serif';
+    font-size: 0.5em;
+    color: rgb(255, 255, 255);
+    padding: 10px;
+}
+
+a:visited {
+    color: rgb(255, 255, 255);
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.menu {
+    text-decoration: none; /* Remove underline from links */
+    color: rgb(255, 255, 255); /* Default text color */
+    padding: 10px;
+}
+
+#projects {
+    position: relative;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+    padding: 10px;
+}
+
+.projects h1 {
+    font-size: 4em;
+    opacity: 0;
+    font-family: 'PT Serif', serif;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0; /* Start as invisible */
+    }
+    100% {
+        opacity: 1; /* Fully visible */
+    }
+}
+
+.fade-in-visible {
+    animation: fadeIn 1s ease-out forwards;
+    opacity: 1;
+  }
+
+.project-item {
+    width: 80vw;
+    box-sizing: border-box;
+    margin-top: 5vmin;
+    align-items: first baseline;
+    text-align: left;
+    border-radius: 8px;
+    background-color: rgb(0, 0, 0);
+    opacity: 0.8;
+    border: 4px solid #dfdf41; /* light gray border */
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.821); /* subtle shadow */
+    padding: 40px;
+    color: rgb(255, 255, 255);
+}
+
+.project-item:hover {
+    box-shadow: 0 6px 14px #dfdf41;
+}
+
+.project-item h2 {
+    font-family: 'Montserrat', sans-serif;
+    text-align: left;
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-bottom: 1.5em;
+}
