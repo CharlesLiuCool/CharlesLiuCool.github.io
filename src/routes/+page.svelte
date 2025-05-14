@@ -62,8 +62,10 @@
 				ghost.className = "ghost";
 				ghost.style.left = `${e.clientX}px`;
 				ghost.style.top = `${e.clientY - 20}px`;
+
+				ghost.addEventListener('animationend', () => ghost.remove());
+
 				document.body.appendChild(ghost);
-				setTimeout(() => ghost.remove(), 700);
 			});
 		}
 

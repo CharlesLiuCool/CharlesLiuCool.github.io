@@ -61,6 +61,8 @@ html {
 
 .ghost {
     position: fixed;
+    pointer-events: none !important;
+    mix-blend-mode: exclusion;
     width: 30px;
     height: 30px;
     background-color: rgba(255, 255, 255, 0.251);
@@ -281,7 +283,7 @@ a:hover {
     border-radius: 8px;
     background-color: rgb(0, 0, 0);
     opacity: 0.8;
-    border: 4px solid #dfdf41; /* light gray border */
+    border: 2px solid #dfdf41; /* light gray border */
     box-shadow: 0 2px 4px rgba(255, 255, 255, 0.821); /* subtle shadow */
     padding: 40px;
     color: rgb(255, 255, 255);
