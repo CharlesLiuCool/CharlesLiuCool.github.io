@@ -84,6 +84,12 @@ html {
 }
 
 @media (pointer: coarse) {
+    html,
+    body,
+    a,
+    * {
+        cursor: auto !important;
+    }
     #cursor-container,
     #circularcursor,
     .ghost {
@@ -293,7 +299,6 @@ a:hover {
     opacity: 0.8;
     border: 2px solid #dfdf41; /* light gray border */
     box-shadow: 0 2px 4px rgba(255, 255, 255, 0.821); /* subtle shadow */
-    padding: 40px;
     color: rgb(255, 255, 255);
 }
 
@@ -305,6 +310,22 @@ a:hover {
     font-family: 'Montserrat', sans-serif;
     text-align: left;
     font-weight: bold;
-    font-size: 1.5em;
-    margin-bottom: 1.5em;
+    font-size: 3.5vmin;
+    line-height: 5.5vmin;
+    padding: 30px;
+}
+
+.project-item p {
+    font-family: 'Montserrat', sans-serif;
+    text-align: left;
+    font-size: 2vmin;
+    padding-left: 30px;
+}
+
+.project-details {
+    font-family: 'Montserrat', sans-serif;
+    text-align: left;
+    font-size: 3vmin;
+    padding-left: 20px;
+    margin-bottom: 3vmin;
 }

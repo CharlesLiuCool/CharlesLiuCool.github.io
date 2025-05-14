@@ -40,5 +40,6 @@
 	},
 	"dependencies": {
 		"gh-pages": "^6.3.0"
-	}
+	},
+	"homepage": "https://charlesliucool.github.io"
 }

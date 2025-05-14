@@ -148,12 +148,15 @@
 		<div class="projects">
 			<h1>PROJECTS</h1>
 			<div class="project-item">
-			<h2>Snowpack-Prediction Artificial Intelligence - SAI</h2>
-			<p>Details</p>
+				<h2>Snowpack-Prediction Artificial Intelligence - SAI</h2>
+				<p>A machine learning algorithm to predict snow-water equivalent values based on geospatial and meteorological data.</p>
+				<div class="project-details">
+					<a href="/SAI">More Details...</a>
+				</div>
 			</div>
 			<div class="project-item">
-			<h2>DecoSavvy</h2>
-			<p>Details</p>
+				<h2>DecoSavvy</h2>
+				<p>Details</p>
 			</div>
 			<div class="project-item">
 				<h2>Project</h2>
