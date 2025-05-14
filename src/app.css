@@ -83,6 +83,14 @@ html {
     }
 }
 
+@media (pointer: coarse) {
+    #cursor-container,
+    #circularcursor,
+    .ghost {
+        display: none !important;
+    }
+}
+
 body {
     background-color: rgb(0, 0, 0);
     position: relative;

@@ -19,6 +19,14 @@
 	}
 
 	onMount(() => {
+
+		const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+
+		if (isTouchDevice) {
+			console.log("Touch device detected — skipping custom cursor setup.");
+			return; // exit early — skip cursor setup
+		}
+
 		const updateMaxScroll = () => {
 			maxScroll = document.documentElement.scrollHeight - window.innerHeight;
 		};
