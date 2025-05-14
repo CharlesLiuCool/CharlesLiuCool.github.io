@@ -269,7 +269,7 @@ a:hover {
 }
 
 .projects h1 {
-    font-size: 4em;
+    font-size: 10vmin;
     opacity: 0;
     font-family: 'PT Serif', serif;
 }
@@ -312,20 +312,23 @@ a:hover {
     font-weight: bold;
     font-size: 3.5vmin;
     line-height: 5.5vmin;
-    padding: 30px;
+    padding-left: 7vmin;
+    padding-top: 7vmin;
+    padding-bottom: 2vmin;
 }
 
 .project-item p {
     font-family: 'Montserrat', sans-serif;
     text-align: left;
     font-size: 2vmin;
-    padding-left: 30px;
+    padding-left: 7vmin;
+    padding-bottom: 3vmin;
 }
 
 .project-details {
     font-family: 'Montserrat', sans-serif;
-    text-align: left;
-    font-size: 3vmin;
-    padding-left: 20px;
-    margin-bottom: 3vmin;
+    text-align: right;
+    font-size: 3.5vmin;
+    padding-right: 6vmin;
+    margin-bottom: 7vmin;
 }
