@@ -286,20 +286,25 @@ a:hover {
 .fade-in-visible {
     animation: fadeIn 1s ease-out forwards;
     opacity: 1;
-  }
+}
 
 .project-item {
+    position: relative;
     width: 80vw;
     box-sizing: border-box;
     margin-top: 5vmin;
-    align-items: first baseline;
     text-align: left;
     border-radius: 8px;
     background-color: rgb(0, 0, 0);
     opacity: 0.8;
-    border: 2px solid #dfdf41; /* light gray border */
-    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.821); /* subtle shadow */
+    border: 2px solid #dfdf41;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.821);
     color: rgb(255, 255, 255);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between; /* space between text and image */
+    gap: 2rem; /* gap between text and image */
+    padding: 1rem;
 }
 
 .project-item:hover {
@@ -314,7 +319,7 @@ a:hover {
     line-height: 5.5vmin;
     padding-left: 7vmin;
     padding-right: 7vmin;
-    padding-top: 7vmin;
+    padding-top: 3vmin;
     padding-bottom: 2vmin;
 }
 
@@ -343,5 +348,33 @@ a:hover {
     text-align: right;
     font-size: 3.5vmin;
     padding-right: 6vmin;
-    margin-bottom: 7vmin;
+    margin-bottom: 3vmin;
+}
+
+.project-text {
+    min-width: 0; /* prevents overflow with flexbox */
+    flex: 1 1 auto;
+    transition: flex-basis 0.6s ease;
+}
+
+.hover-image {
+    position: absolute;
+    flex: 0 0 0;
+    max-width: 350px;
+    max-height: 400px;
+    width: auto;
+    object-fit: cover;
+    border: 1px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(30vmin);
+}
+.hover-image.visible {
+    position: relative;
+    flex: 0 0 35%; 
+    opacity: 1;           /* your desired opacity */
+    transform: translateX(0); /* slide back to original position */
+    pointer-events: auto;
+    transition: opacity 0s ease 0s, transform 0.6s ease; 
 }
