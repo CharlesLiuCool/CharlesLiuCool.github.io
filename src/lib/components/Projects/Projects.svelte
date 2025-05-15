@@ -15,14 +15,14 @@
 			award_class: 'WSU MATH 464 - Linear Optimization (Dr. Tom Asaki)',
 			description: 'Formulated linear optimization model to optimally place supply stations in Manhattan-style road grid. Factored in neighborhood populations and prevented placement on existing neighborhoods. Used Python, Pandas, and SciPy.',
 			link: '/OptimizersInc',
-			imageURL: '/images/SAI_cover.jpg'
+			imageURL: '/images/OptimizersInc_cover.jpg'
 		},
 		{
 			title: 'DecoSavvy',
 			award_class: '3rd place WSU CrimsonCode Hackathon',
 			description: 'Used Unity\'s AR Foundation to build a visual reality mobile application that lets users visualize furniture/decor before in the real world before making purchase decisions. Paired with custom Svelte website that let users shop for goods, mimicking online retail platforms.',
 			link: '/DecoSavvy',
-			imageURL: '/images/SAI_cover.jpg'
+			imageURL: '/images/DecoSavvy_cover.jpg'
 		},
 	];
 

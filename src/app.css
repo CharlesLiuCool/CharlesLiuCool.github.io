@@ -372,9 +372,9 @@ a:hover {
 }
 .hover-image.visible {
     position: relative;
-    flex: 0 0 35%; 
+    flex: 0 0 20%; 
     opacity: 1;           /* your desired opacity */
     transform: translateX(0); /* slide back to original position */
     pointer-events: auto;
-    transition: opacity 0s ease 0s, transform 0.6s ease; 
+    transition: opacity 0s ease 0s, transform 1.2s ease; 
 }
