@@ -20,7 +20,7 @@
 		{
 			title: 'DecoSavvy',
 			award_class: '3rd place WSU CrimsonCode Hackathon',
-			description: 'Used Unity\'s AR Foundation to build a visual reality mobile application that lets users visualize furniture/decor before in the real world before making purchase decisions. Paired with custom Svelte website that let users shop for goods, mimicking online retail platforms.',
+			description: 'Used Unity\'s AR Foundation to build a visual reality mobile application that lets users visualize furniture/decor in the real world before making purchase decisions. Paired with custom Svelte website that let users shop for goods, mimicking online retail platforms.',
 			link: '/DecoSavvy',
 			imageURL: '/images/DecoSavvy_cover.jpg'
 		},
