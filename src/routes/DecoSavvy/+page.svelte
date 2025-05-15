@@ -1,5 +1,4 @@
 <script>
-    // optional logic
 </script>
   
 <div id="cursor-container">

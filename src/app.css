@@ -313,7 +313,19 @@ a:hover {
     font-size: 3.5vmin;
     line-height: 5.5vmin;
     padding-left: 7vmin;
+    padding-right: 7vmin;
     padding-top: 7vmin;
+    padding-bottom: 2vmin;
+}
+
+.project-item h3 {
+    font-family: 'Montserrat', sans-serif;
+    text-align: left;
+    font-weight: 300;
+    font-size: 2.5vmin;
+    line-height: 5.5vmin;
+    padding-left: 7vmin;
+    padding-right: 7vmin;
     padding-bottom: 2vmin;
 }
 
@@ -322,6 +334,7 @@ a:hover {
     text-align: left;
     font-size: 2vmin;
     padding-left: 7vmin;
+    padding-right: 7vmin;
     padding-bottom: 3vmin;
 }
 
