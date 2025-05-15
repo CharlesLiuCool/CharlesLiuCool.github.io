@@ -8,14 +8,16 @@
 	let hovering = false;
 </script>
 
-<div 
+<div
   class="project-item"
   on:mouseenter={() => hovering = true}
   on:mouseleave={() => hovering = false}
   role="group"
 >
 	<div class="project-text">
-		<h2>{title}</h2>
+		<a href={link}>
+			<h2>{title}</h2>
+		</a>
 		<h3>{award_class}</h3>
 		<p>{description}</p>
 	</div>

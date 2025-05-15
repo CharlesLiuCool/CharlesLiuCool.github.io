@@ -360,7 +360,7 @@ a:hover {
 .project-text {
     min-width: 0;
     flex: 1 1 auto;
-    transition: flex-basis 0.6s ease;
+    transition: flex-basis 0.4s ease;
 }
 
 .project-item:hover .project-text {
@@ -388,7 +388,7 @@ a:hover {
     opacity: 0;
     pointer-events: none;
     transform: translateX(30vmin);
-    transition: opacity 0.4s ease-out 0.1s, transform 0.6s ease-out 0.5s;
+    transition: opacity 0.3s ease-out 0.1s, transform 0.4s ease-out 0.4s;
 }
 .hover-image.visible {
     flex: 0 0 20%; 
@@ -396,8 +396,8 @@ a:hover {
     transform: translateX(0);
     pointer-events: auto;
     transition: 
-        opacity 1s ease-in 0.6s,
-        transform 1s ease-in-out 0.6s; 
+        opacity 1s ease-in 0.2s,
+        transform 1s ease-in-out 0.1s; 
 }
 
 #about {
