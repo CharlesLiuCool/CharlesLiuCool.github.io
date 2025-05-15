@@ -3,6 +3,7 @@
 	import Cursor from '$lib/components/Cursor.svelte';
 	import Hero from '$lib/components/Hero.svelte';
 	import Projects from '$lib/components/Projects/Projects.svelte';
+	import About from '$lib/components/About.svelte';
 
 	let scrollY = 0;
 	let expansionScale = 1;
@@ -35,7 +36,7 @@
 <Cursor />
 <main class="page-container">
 	<Hero {expansionScale} {textLeft} />
-	<section id="about"></section>
 	<section id="CV"></section>
 	<Projects />
+	<About />
 </main>

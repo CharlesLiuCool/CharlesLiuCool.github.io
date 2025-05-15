@@ -70,6 +70,7 @@ html {
     border-radius: 50%;
     opacity: 0;
     animation: ghost-fade 0.7s forwards;
+    z-index: 999;
   }
   
 @keyframes ghost-fade {
@@ -377,4 +378,20 @@ a:hover {
     transform: translateX(0); /* slide back to original position */
     pointer-events: auto;
     transition: opacity 0s ease 0s, transform 1.2s ease; 
+}
+
+#about {
+    position: relative;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+    padding: 10px;
+}
+
+.about h1 {
+    font-size: 10vmin;
+    opacity: 0;
+    font-family: 'PT Serif', serif;
 }
