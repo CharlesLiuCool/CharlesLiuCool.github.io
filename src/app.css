@@ -266,7 +266,6 @@ a:hover {
     display: flex;
     justify-content: center;
     z-index: 1;
-    padding: 10px;
 }
 
 .projects h1 {
@@ -291,7 +290,7 @@ a:hover {
 
 .project-item {
     position: relative;
-    width: 80vw;
+    width: 75vw;
     box-sizing: border-box;
     margin-top: 5vmin;
     text-align: left;
@@ -305,11 +304,13 @@ a:hover {
     align-items: flex-start;
     justify-content: space-between; /* space between text and image */
     gap: 2rem; /* gap between text and image */
-    padding: 1rem;
+    transition: width 1s ease, box-shadow 1s ease, height 1s ease;
 }
 
 .project-item:hover {
     box-shadow: 0 6px 14px #dfdf41;
+    width: 80vw;
+    transform: scaleX(1.03);
 }
 
 .project-item h2 {
@@ -317,11 +318,11 @@ a:hover {
     text-align: left;
     font-weight: bold;
     font-size: 3.5vmin;
-    line-height: 5.5vmin;
+    line-height: 5vmin;
     padding-left: 7vmin;
     padding-right: 7vmin;
     padding-top: 3vmin;
-    padding-bottom: 2vmin;
+    padding-bottom: 3vmin;
 }
 
 .project-item h3 {
@@ -332,7 +333,9 @@ a:hover {
     line-height: 5.5vmin;
     padding-left: 7vmin;
     padding-right: 7vmin;
-    padding-bottom: 2vmin;
+    padding-bottom: 3vmin;
+    line-height: 1.7;
+    padding-top: 0;
 }
 
 .project-item p {
@@ -341,7 +344,8 @@ a:hover {
     font-size: 2vmin;
     padding-left: 7vmin;
     padding-right: 7vmin;
-    padding-bottom: 3vmin;
+    padding-bottom: 7vmin;
+    line-height: 2;
 }
 
 .project-details {
@@ -350,34 +354,50 @@ a:hover {
     font-size: 3.5vmin;
     padding-right: 6vmin;
     margin-bottom: 3vmin;
+
 }
 
 .project-text {
-    min-width: 0; /* prevents overflow with flexbox */
+    min-width: 0;
     flex: 1 1 auto;
     transition: flex-basis 0.6s ease;
+}
+
+.project-item:hover .project-text {
+    flex-basis: 50%;
+    max-width: 80%
+}
+
+.project-item:hover .hover-image {
+    flex: 0 0 50%;
+    max-width: 50%;
+    opacity: 1;
 }
 
 .hover-image {
     position: absolute;
     flex: 0 0 0;
-    max-width: 350px;
-    max-height: 400px;
+    top: 0%;
+    right: 0%;
+    max-width: 25vw;
+    max-height: 100%;
     width: auto;
     object-fit: cover;
-    border: 1px solid white;
+    padding: 2vmin;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     opacity: 0;
     pointer-events: none;
     transform: translateX(30vmin);
+    transition: opacity 0.4s ease-out 0.1s, transform 0.6s ease-out 0.5s;
 }
 .hover-image.visible {
-    position: relative;
     flex: 0 0 20%; 
-    opacity: 1;           /* your desired opacity */
-    transform: translateX(0); /* slide back to original position */
+    opacity: 1;
+    transform: translateX(0);
     pointer-events: auto;
-    transition: opacity 0s ease 0s, transform 1.2s ease; 
+    transition: 
+        opacity 1s ease-in 0.6s,
+        transform 1s ease-in-out 0.6s; 
 }
 
 #about {
@@ -394,4 +414,36 @@ a:hover {
     font-size: 10vmin;
     opacity: 0;
     font-family: 'PT Serif', serif;
+}
+
+#CV {
+    position: relative;
+    left: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+    padding: 10px;
+}
+
+.CV {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.CV h1 {
+    font-size: 10vmin;
+    opacity: 0;
+    font-family: 'PT Serif', serif;
+    flex-shrink: 0;
+}
+
+.pdf-frame {
+    width: 100%;
+    flex: 1;
+    border: none;
 }

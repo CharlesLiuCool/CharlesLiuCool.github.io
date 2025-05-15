@@ -18,11 +18,6 @@
 		<h2>{title}</h2>
 		<h3>{award_class}</h3>
 		<p>{description}</p>
-		{#if link}
-			<div class="project-details">
-			<a href={link}>More Details...</a>
-			</div>
-		{/if}
 	</div>
 	<img
 		src={imageURL}
