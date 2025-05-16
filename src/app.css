@@ -402,12 +402,14 @@ a:hover {
 
 #about {
     position: relative;
+    background-image: url('images/wbg.jpg');
     left: 0;
-    width: 100%;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     z-index: 1;
-    padding: 10px;
+    padding-top: 15vh;
 }
 
 .about h1 {
