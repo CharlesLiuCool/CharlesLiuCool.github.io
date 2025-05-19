@@ -71,7 +71,7 @@ html {
     opacity: 0;
     animation: ghost-fade 0.7s forwards;
     z-index: 999;
-  }
+}
   
 @keyframes ghost-fade {
     0% {
@@ -114,7 +114,7 @@ body {
 
 .background {
     position: relative;
-    background-image: url('images/wbg.jpg');
+    background-image: url('images/charles.jpg');
     background-size: cover;
     background-position: clamp(100%, calc(50% - 50vmin), 60%) center;
     margin: 0;
@@ -294,7 +294,7 @@ a:hover {
     box-sizing: border-box;
     margin-top: 5vmin;
     text-align: left;
-    border-radius: 8px;
+    border-radius: 16px;
     background-color: rgb(0, 0, 0);
     opacity: 0.8;
     border: 2px solid #dfdf41;
@@ -402,7 +402,7 @@ a:hover {
 
 #about {
     position: relative;
-    background-image: url('images/wbg.jpg');
+    background-image: url('images/charles.jpg');
     left: 0;
     width: 100vw;
     height: 100vh;
