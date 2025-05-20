@@ -70,7 +70,7 @@ html {
     border-radius: 50%;
     opacity: 0;
     animation: ghost-fade 0.7s forwards;
-    z-index: 999;
+    z-index: 9998;
 }
   
 @keyframes ghost-fade {
@@ -110,11 +110,12 @@ body {
     overflow-x: hidden;
     min-height: 100vh;
     cursor: none;
+    z-index: 1;
 }
 
 .background {
     position: relative;
-    background-image: url('images/charles.jpg');
+    background-image: url('images/wbg.jpg');
     background-size: cover;
     background-position: clamp(100%, calc(50% - 50vmin), 60%) center;
     margin: 0;
@@ -125,6 +126,7 @@ body {
     box-sizing: border-box; /* Ensure padding doesn't affect the element's total height */
     overflow-x: hidden;
     height: 100vh;
+    z-index: 2;
 }
 
 div {
@@ -402,7 +404,7 @@ a:hover {
 
 #about {
     position: relative;
-    background-image: url('images/charles.jpg');
+    background-image: url('images/wbg.jpg');
     left: 0;
     width: 100vw;
     height: 100vh;
