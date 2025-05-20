@@ -1,0 +1,47 @@
+@import 'tailwindcss';
+
+.page-container {
+	display: flex;
+	flex-direction: column;
+    scroll-behavior: smooth;
+}
+.pt-serif-regular {
+    font-family: "PT Serif", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+.pt-serif-bold {
+    font-family: "PT Serif", serif;
+    font-weight: 700;
+    font-style: normal;
+}
+
+.pt-serif-regular-italic {
+    font-family: "PT Serif", serif;
+    font-weight: 400;
+    font-style: italic;
+}
+
+.pt-serif-bold-italic {
+    font-family: "PT Serif", serif;
+    font-weight: 700;
+    font-style: italic;
+}
+
+.header-container {
+    padding: 20px;
+}
+
+h1 {
+    font-size: 3em;
+    font-weight: bold;
+    font-family: 'PT-Serif', serif;
+    line-height: 1.5em;
+}
+
+.img-frame {
+    position: relative;
+    padding: 30px;
+    max-width: 50vw;
+}

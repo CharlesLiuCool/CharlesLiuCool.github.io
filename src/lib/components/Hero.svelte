@@ -1,6 +1,34 @@
 <script lang="ts">
-	export let expansionScale: number;
-	export let textLeft: number;
+	import { onMount } from 'svelte';
+
+	let scrollY = 0;
+	let expansionScale = 1;
+	let maxScroll = 1;
+	const maxTextScale = 50;
+	let textLeft = 21 * expansionScale - 15;
+	const minScale = 1;
+	const maxScale = 2.3;
+
+	function handleScroll() {
+		scrollY = window.scrollY;
+		const progress = 2 * scrollY / maxScroll;
+		expansionScale = Math.min(maxScale, minScale + (maxScale - minScale) * progress);
+		textLeft = Math.min(maxTextScale, 21 * expansionScale - 15);
+	}
+
+	onMount(() => {
+		const updateMaxScroll = () => {
+			maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+		};
+
+		updateMaxScroll();
+		handleScroll();
+
+		window.addEventListener('scroll', handleScroll);
+		window.addEventListener('resize', updateMaxScroll);
+	});
+
+
 </script>
 
 <section class="background">

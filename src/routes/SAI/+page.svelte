@@ -1,8 +1,10 @@
 <script>
-    // optional logic
+    import Cursor from '$lib/components/Cursor.svelte';
 </script>
   
-<div id="cursor-container">
-    <div id="circularcursor"></div>
+<Cursor />
+<div class = header-container> 
+    <h1>Snowpack-Prediction Artificial Intelligence - SAI </h1>
+    <h3>Charles Liu, Neal Wang, Collin Bale, Marcos Zapien, Sairaghav Gubba, Darron Li</h3>
 </div>
-<h1>Work in Progress</h1>
+<img src="images/SAI/SAI_title.jpg" alt="SAI_title" class="img-frame"/>

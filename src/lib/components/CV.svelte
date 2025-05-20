@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    const pdfUrl = 'CV/CV.pdf';
     let titleVisible = false;
 	let titleElement: HTMLElement;
 
@@ -23,11 +22,8 @@
 <section id="CV">
     <div class="CV">
       <h1 bind:this={titleElement} class:fade-in-visible={titleVisible}>CV</h1>
-      <iframe
-        title="CV"
-        src={pdfUrl}
-        class="pdf-frame"
-      ></iframe>
+	  <img src="CV/CV.png" class="png-frame" />
     </div>
+	
   </section>
     
