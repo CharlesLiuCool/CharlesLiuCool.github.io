@@ -22,7 +22,7 @@
 <section id="CV">
     <div class="CV">
       <h1 bind:this={titleElement} class:fade-in-visible={titleVisible}>CV</h1>
-	  <img src="CV/CV.png" class="png-frame" />
+	  <img src="CV/CV.jpg" class="png-frame" />
     </div>
 	
   </section>
