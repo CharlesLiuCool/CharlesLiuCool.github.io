@@ -1,7 +1,4 @@
 <script>
-</script>
-  
-<script>
     import Cursor from '$lib/components/Cursor.svelte';
 </script>
   
