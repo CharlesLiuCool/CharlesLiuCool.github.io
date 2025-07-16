@@ -1,1 +1,0 @@
-import{t as o,a as e}from"../chunks/CGEPsu7i.js";import"../chunks/C1sIrOPX.js";import{f as i,n as m}from"../chunks/Cd3Lzj2H.js";import{C as n}from"../chunks/6U1_D1C4.js";var p=o("<!> <div><h1>DecoSavvy</h1> <h3>Charles Liu, Seth Ritter, Neal Wang, Aditya Parikh</h3></div>",1);function d(r){var a=p(),t=i(a);n(t,{}),m(2),e(r,a)}export{d as component};

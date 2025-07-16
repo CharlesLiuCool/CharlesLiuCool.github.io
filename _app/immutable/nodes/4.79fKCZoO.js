@@ -1,1 +1,0 @@
-import{t as o,a as i}from"../chunks/CGEPsu7i.js";import"../chunks/C1sIrOPX.js";import{f as p,n as e}from"../chunks/Cd3Lzj2H.js";import{C as m}from"../chunks/6U1_D1C4.js";var n=o("<!> <div><h1>Supply Station Optimizer</h1> <h3>Charles Liu</h3></div>",1);function v(t){var r=n(),a=p(r);m(a,{}),e(2),i(t,r)}export{v as component};
