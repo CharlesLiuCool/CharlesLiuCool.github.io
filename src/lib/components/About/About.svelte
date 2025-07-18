@@ -8,9 +8,10 @@
 	const about = {
 		title: 'Hi, I\'m Charles!',
 		award_class: '',
-		description: 'I am an incoming freshman at Washington State University studying computer science and mathematics. I\'m passionate about cryptography, software engineering, and mathematics. In my free time, I love birdwatching!',
+		description: 'I am an incoming freshman at Washington State University studying computer science and mathematics. \nI\'m passionate about cryptography, software engineering, and mathematics. In my free time, I love birdwatching!',
 		link: '/',
-		imageURL: '../images/about.jpg',
+		imageURL: '../images/profile_picture.jpg',
+		width: 20,
 		style: color.azure,
 	};
 

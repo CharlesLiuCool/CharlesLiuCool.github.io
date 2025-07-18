@@ -349,6 +349,20 @@ a:hover {
     box-shadow: 0 6px 14px var(--shadow-color, rgba(0, 0, 0, 0.2));
 }
 
+.hover-icon {
+    position: absolute;
+    top: 5vmin;
+    right: 5vmin;
+    height: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    pointer-events: none; /* avoid blocking hover */
+}
+
+.item:hover .hover-icon {
+    transform: scale(1.01);
+}
+
 .projects-grid .item h2 {
     text-align: center;
     font-size: 2.5vmin;

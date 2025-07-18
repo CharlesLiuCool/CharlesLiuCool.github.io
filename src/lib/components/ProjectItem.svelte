@@ -23,7 +23,7 @@
             </a>
             <img src={imageURL} alt="Project Image" class="item-image" style="width: 150px; height: auto;"/>
             <h3>{award_class}</h3>
-            <p>{description}</p>
+            <p>{@html description.replace(/\n/g, '<br>')}</p>
         </div>
     </div>
 </div>

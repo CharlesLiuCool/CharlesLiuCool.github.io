@@ -7,9 +7,10 @@
 		{
 			title: 'Software Engineer Intern',
 			award_class: 'Schweitzer Engineering Laboratories',
-			description: 'Machine learning algorithm using SciKit optimize\'s random forest to predict snow-water equivalent values based on real geospatial and meteorological data with 96%+ NSE.',
+			description: 'Implemented new features and resolved bugs in a 100,000+ line React/TypeScript codebase for a prototype internal power engineering design software with minimal dependencies to enhance engineer workflow efficiency. Collaborated with team of ~10 engineers on-site through Git and Jira in Agile sprints to deliver features biweekly',
 			link: '/SAI',
-			imageURL: '',
+			imageURL: '../images/SEL_logo.jpg',
+			width: 25,
             style: color.azure,
 		},
 	];
