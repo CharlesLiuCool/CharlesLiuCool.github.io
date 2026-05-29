@@ -5,27 +5,54 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
 }
 
-const { title, description = 'Research portfolio' } = Astro.props;
+const {
+  title,
+  description = 'Research portfolio',
+  image = '/preview.png'
+} = Astro.props;
+
 const currentPath = Astro.url.pathname;
+const fullUrl = Astro.url.href;
 ---
 
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content={description} />
-  <title>{title} — Research</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-</head>
-<body>
-  <div class="app-shell">
-    <Sidebar currentPath={currentPath} />
-    <main class="main-content">
-      <slot />
-    </main>
-  </div>
-</body>
+  <head>
+    <!-- Basic Meta -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO -->
+    <title>{title} — Research</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph (Discord / Slack / iMessage) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={`${title} — Research`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={fullUrl} />
+    <meta property="og:image" content={image} />
+
+    <!-- Twitter / X Preview -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={`${title} — Research`} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <Sidebar currentPath={currentPath} />
+
+      <main class="main-content">
+        <slot />
+      </main>
+    </div>
+  </body>
 </html>
