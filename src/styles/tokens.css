@@ -1,0 +1,124 @@
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS — Catppuccin Mocha
+   Single source of truth. Never reference raw values elsewhere.
+───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Backgrounds ───────────────────────────────────────── */
+  --bg-base:     #1e1e2e;   /* mocha base */
+  --bg-surface:  #181825;   /* mocha mantle — sidebar, raised panels */
+  --bg-card:     #1e1e2e;   /* mocha base — cards, content panels */
+  --bg-overlay:  #313244;   /* mocha surface1 — inline code, hover states */
+  --bg-sunken:   #11111b;   /* mocha crust — inputs, depressed areas */
+
+  /* ── Text ──────────────────────────────────────────────── */
+  --text-primary:   #cdd6f4;   /* mocha text — headings, emphasis */
+  --text-secondary: #bac2de;   /* mocha subtext1 — body copy */
+  --text-muted:     #a6adc8;   /* mocha subtext0 — secondary labels */
+  --text-faint:     #6c7086;   /* mocha overlay1 — timestamps, decorative */
+  --text-disabled:  #585b70;   /* mocha overlay0 — disabled states */
+
+  /* ── Borders ───────────────────────────────────────────── */
+  --border-faint:   #1e1e2e;   /* mocha base */
+  --border-subtle:  #313244;   /* mocha surface1 */
+  --border-default: #45475a;   /* mocha surface2 */
+  --border-strong:  #585b70;   /* mocha overlay0 */
+
+  /* ── Accent palette ────────────────────────────────────── */
+  --accent-purple: #cba6f7;   /* mocha mauve — primary accent */
+  --accent-blue:   #89b4fa;   /* mocha blue */
+  --accent-cyan:   #89dceb;   /* mocha sky */
+  --accent-teal:   #94e2d5;   /* mocha teal */
+  --accent-green:  #a6e3a1;   /* mocha green */
+  --accent-amber:  #f9e2af;   /* mocha yellow */
+  --accent-peach:  #fab387;   /* mocha peach — warm secondary */
+  --accent-pink:   #f5c2e7;   /* mocha pink */
+  --accent-red:    #f38ba8;   /* mocha red */
+
+  /* Accent variants (translucent) — used for bg/border tints */
+  --accent-purple-bg:  color-mix(in srgb, var(--accent-purple) 12%, transparent);
+  --accent-purple-bdr: color-mix(in srgb, var(--accent-purple) 28%, transparent);
+  --accent-blue-bg:    color-mix(in srgb, var(--accent-blue)   12%, transparent);
+  --accent-blue-bdr:   color-mix(in srgb, var(--accent-blue)   28%, transparent);
+  --accent-cyan-bg:    color-mix(in srgb, var(--accent-cyan)   12%, transparent);
+  --accent-cyan-bdr:   color-mix(in srgb, var(--accent-cyan)   28%, transparent);
+  --accent-teal-bg:    color-mix(in srgb, var(--accent-teal)   12%, transparent);
+  --accent-teal-bdr:   color-mix(in srgb, var(--accent-teal)   28%, transparent);
+  --accent-green-bg:   color-mix(in srgb, var(--accent-green)  12%, transparent);
+  --accent-green-bdr:  color-mix(in srgb, var(--accent-green)  28%, transparent);
+  --accent-amber-bg:   color-mix(in srgb, var(--accent-amber)  12%, transparent);
+  --accent-amber-bdr:  color-mix(in srgb, var(--accent-amber)  28%, transparent);
+  --accent-peach-bg:   color-mix(in srgb, var(--accent-peach)  12%, transparent);
+  --accent-peach-bdr:  color-mix(in srgb, var(--accent-peach)  28%, transparent);
+  --accent-pink-bg:    color-mix(in srgb, var(--accent-pink)   12%, transparent);
+  --accent-pink-bdr:   color-mix(in srgb, var(--accent-pink)   28%, transparent);
+  --accent-red-bg:     color-mix(in srgb, var(--accent-red)    12%, transparent);
+  --accent-red-bdr:    color-mix(in srgb, var(--accent-red)    28%, transparent);
+
+  /* ── Semantic color aliases ─────────────────────────────── */
+  --color-link:    var(--accent-purple);
+  --color-success: var(--accent-green);
+  --color-warning: var(--accent-peach);
+  --color-error:   var(--accent-red);
+  --color-info:    var(--accent-blue);
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-sans:  'Geist', system-ui, sans-serif;
+  --font-heading: 'Inter', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+  --font-serif: 'Lora', Georgia, serif;
+
+  --text-xs:   0.6875rem;  /* 11px — labels, timestamps */
+  --text-sm:   0.8125rem;  /* 13px — secondary copy */
+  --text-base: 0.9375rem;  /* 15px — body */
+  --text-md:   1rem;       /* 16px */
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+
+  --leading-tight:  1.3;
+  --leading-snug:   1.5;
+  --leading-normal: 1.7;
+  --leading-loose:  1.85;
+
+  --tracking-tight:  -0.03em;
+  --tracking-snug:   -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.04em;
+  --tracking-widest:  0.1em;
+
+  /* ── Spacing ────────────────────────────────────────────── */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+
+  /* ── Radii ──────────────────────────────────────────────── */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
+  --radius-full: 9999px;
+
+  /* ── Shadows ────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  --sidebar-width:   240px;
+  --content-width:   48rem;
+  --content-padding: var(--space-8);
+
+  /* ── Transitions ────────────────────────────────────────── */
+  --transition-fast:   0.1s ease;
+  --transition-base:   0.15s ease;
+  --transition-slow:   0.3s ease;
+}

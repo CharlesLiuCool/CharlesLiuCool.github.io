@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config/site';
+
+const interests = [
+  { area: 'Zero-Knowledge Proofs', detail: 'SNARKs, STARKs, proof composition' },
+  { area: 'Interactive Proofs',    detail: 'Sum-check, MIPs, PCPs' },
+  { area: 'Commitment Schemes',    detail: 'KZG, FRI, Pedersen' },
+  { area: 'Complexity Theory',     detail: 'IP, PSPACE, #P' },
+];
+---
+
+<BaseLayout title="About">
+  <div class="page-container animate-fade-up">
+
+    <div class="page-header">
+      <div class="page-header__title-row">
+        <h1 class="heading-section">About</h1>
+      </div>
+      <p class="page-header__description">The person behind the research.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 180px;gap:var(--space-10);align-items:start;">
+
+      <!-- Bio -->
+      <div class="stack stack--lg">
+        <p style="color:var(--text-secondary);font-size:var(--text-base);line-height:var(--leading-loose);">
+          I'm an undergraduate interested in
+          <span style="color:var(--accent-cyan);">theoretical computer science</span>, particularly <span style="color:var(--accent-purple);">cryptography</span>.
+          I am a research assistant in the Dr. Fenghao Liu lab, where I study post-quantum cryptography, fully homomorphic encryption, and zero-knowledge proofs.
+        </p>
+        <p style="color:var(--text-secondary);font-size:var(--text-base);line-height:var(--leading-loose);">
+          Besides research, I am a software engineer intern at Schweitzer Engineering Laboratories.
+        </p>
+        <p style="color:var(--text-secondary);font-size:var(--text-base);line-height:var(--leading-loose);">
+          In my free-time, I enjoy bird-watching, tennis, and chess.
+        </p>
+
+        <!-- Research interests -->
+        <div>
+          <div class="label-section" style="margin-bottom:var(--space-3);">Research Interests</div>
+          <div class="stack stack--sm">
+            {interests.map(({ area, detail }) => (
+              <div style="display:flex;align-items:flex-start;gap:var(--space-3);font-size:var(--text-sm);">
+                <span style="color:var(--accent-purple);font-family:var(--font-mono);margin-top:0.1rem;flex-shrink:0;">▸</span>
+                <div>
+                  <span style="color:var(--text-primary);font-weight:500;">{area}</span>
+                  <span class="label-meta" style="margin-left:var(--space-2);">{detail}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar info -->
+      <div class="stack stack--lg">
+        <div>
+          <div class="label-section" style="margin-bottom:var(--space-3);">Contact</div>
+          <div class="stack stack--sm">
+            <div>
+              <div class="label-meta">email</div>
+              <a href={`mailto:${SITE.email}`} style="color:var(--accent-purple);font-size:var(--text-xs);font-family:var(--font-mono);">{SITE.email}</a>
+            </div>
+            <div>
+              <div class="label-meta">github</div>
+              <a href={SITE.github} style="color:var(--accent-purple);font-size:var(--text-xs);font-family:var(--font-mono);">@{SITE.github_name}</a>
+            </div>
+            <div>
+              <div class="label-meta">youtube</div>
+              <a href={SITE.youtube} style="color:var(--accent-purple);font-size:var(--text-xs);font-family:var(--font-mono);">@{SITE.youtube_name}</a>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="label-section" style="margin-bottom:var(--space-3);">Affiliation</div>
+          <div class="stack stack--sm" style="font-size:var(--text-sm);">
+            <div style="color:var(--text-primary);font-weight:500;">{SITE.institution}</div>
+            <div class="label-meta">Feng-hao Liu
+               Cryptography Lab</div>
+            <div class="label-meta">Pullman, WA USA</div>
+          </div>
+        </div>
+
+        <a href="/cv" class="btn btn--purple">
+          <span>▤</span> View CV
+        </a>
+      </div>
+
+    </div>
+  </div>
+</BaseLayout>

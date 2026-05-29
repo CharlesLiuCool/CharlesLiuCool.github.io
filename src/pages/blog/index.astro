@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentCard from '../../components/ui/ContentCard.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import { getCollection } from 'astro:content';
+
+const all    = await getCollection('blog');
+const sorted = all.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+---
+<BaseLayout title="Blog">
+  <div class="page-container animate-fade-up">
+    <PageHeader title="Blog" description="Longer-form writing: explainers, opinions, and technical deep-dives." count={all.length} accent="green" />
+    <div class="stack stack--md">
+      {sorted.map(item => (
+        <ContentCard
+          href={'/blog/' + item.id}
+          title={item.data.title}
+          date={item.data.date}
+          summary={item.data.summary}
+          tags={item.data.tags}
+        />
+      ))}
+      {all.length === 0 && <div class="empty-state">No entries yet. Add .mdx files to src/content/blog/</div>}
+    </div>
+  </div>
+</BaseLayout>

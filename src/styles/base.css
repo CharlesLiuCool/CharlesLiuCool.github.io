@@ -1,0 +1,65 @@
+/* ─────────────────────────────────────────────────────────────
+   BASE
+   Element-level resets and foundational styles only.
+   No component styles here.
+───────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: var(--bg-base);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: var(--leading-normal);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+code, pre, kbd {
+  font-family: var(--font-mono);
+}
+
+/* ── Selection ─────────────────────────────────────────────── */
+::selection {
+  background: color-mix(in srgb, var(--accent-purple) 30%, transparent);
+  color: var(--text-primary);
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-default); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ── Focus ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── KaTeX ─────────────────────────────────────────────────── */
+.katex             { font-size: 1em; }
+.katex-display     { overflow-x: auto; overflow-y: hidden; padding: var(--space-2) 0; }

@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const education = [
+  { degree: 'B.S. Computer Science & Mathematics',  school: 'Washington State University', years: '2023-2027',   note: 'GPA: 3.99 (Major: 4.00)' },
+];
+const papers = [
+  { title: 'On Sequential Composition of Post-Quantum Arguments of Knowledge', venue: 'EUROCRYPT 2025', year: '2025', tags: ['zk', 'commitments'], status: 'in review' },
+  // { title: 'Example Paper Here', venue: 'TCC 2024', year: '2024', tags: ['interactive-proofs'], status: 'published' },
+  // { title: 'Example Paper Here', venue: 'Preprint', year: '2024', tags: ['snark', 'composition'], status: 'preprint' },
+];
+const talks = [
+  // { title: 'Interactive Proofs and the Sum-Check Protocol', venue: 'ZKProof Workshop', year: '2024' },
+  // { title: 'Low-Degree Extensions: Theory and Practice', venue: 'Simons Institute', year: '2023' },
+];
+const awards = [
+  { name: 'WSU Outstanding Junior of the Year (Computer Science)', year: '2026' },
+  { name: '1st place WSU SURCA (Undergraduate Research Symposium)', year: '2026' },
+  { name: 'National Merit Finalist', year: '2024' },
+];
+---
+
+<BaseLayout title="CV">
+  <div class="page-container animate-fade-up">
+
+    <div class="page-header">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div>
+          <h1 class="heading-section" style="margin-bottom:var(--space-1);">Curriculum Vitae</h1>
+          <span class="label-meta">Last updated May 2026</span>
+        </div>
+        <a href="/cv.pdf" class="btn btn--purple">↓ PDF</a>
+      </div>
+    </div>
+
+    <!-- Education -->
+    <section class="page-section">
+      <div class="label-section" style="margin-bottom:var(--space-4);">Education</div>
+      <div class="stack stack--md">
+        {education.map(e => (
+          <div class="cv-row">
+            <span class="cv-row__year">{e.years}</span>
+            <div class="cv-row__body">
+              <div class="cv-row__title">{e.degree}</div>
+              <div class="cv-row__subtitle">{e.school}</div>
+              {e.note && <div class="cv-row__note">{e.note}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Publications -->
+    <section class="page-section">
+      <div class="label-section" style="margin-bottom:var(--space-4);">Publications</div>
+      <div class="stack stack--lg">
+        {papers.map(p => (
+          <div class="cv-row">
+            <span class="cv-row__year">{p.year}</span>
+            <div class="cv-row__body">
+              <div class="cv-row__title">{p.title}</div>
+              <div style="display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-1);">
+                <span class="cv-row__subtitle" style="margin-top:0;">{p.venue}</span>
+                <span class:list={['badge', p.status === 'published' ? 'badge--published' : 'badge--preprint']}>{p.status}</span>
+              </div>
+              <div class="cv-row__tags">
+                {p.tags.map(tag => <span class="tag">{tag}</span>)}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Talks -->
+    <section class="page-section">
+      <div class="label-section" style="margin-bottom:var(--space-4);">Talks</div>
+      <div class="stack stack--md">
+        {talks.map(t => (
+          <div class="cv-row">
+            <span class="cv-row__year">{t.year}</span>
+            <div class="cv-row__body">
+              <div class="cv-row__title">{t.title}</div>
+              <div class="cv-row__subtitle">{t.venue}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Awards -->
+    <section class="page-section">
+      <div class="label-section" style="margin-bottom:var(--space-4);">Awards & Honors</div>
+      <div class="stack stack--md">
+        {awards.map(a => (
+          <div class="cv-row">
+            <span class="cv-row__year">{a.year}</span>
+            <div class="cv-row__body">
+              <div class="cv-row__title">{a.name}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,54 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { STATUS_CLASS, formatDate } from '../config/site';
+
+interface Props {
+  title: string;
+  date?: string;
+  tags?: string[];
+  summary?: string;
+  status?: string;
+  collection?: string;
+}
+
+const { title, date, tags = [], summary, status, collection } = Astro.props;
+const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
+---
+
+<BaseLayout title={title} description={summary}>
+  <div class="page-container animate-fade-up">
+
+    {collection && (
+      <nav class="breadcrumb">
+        <a href={`/${collection}`}>{collection}</a>
+        <span>/</span>
+        <span class="truncate">{title}</span>
+      </nav>
+    )}
+
+    <header class="article-header">
+      <h1 class="article-title">{title}</h1>
+      {summary && <p class="article-summary">{summary}</p>}
+      <div class="article-meta">
+        {date && <span class="label-meta">{formatDate(date, 'long')}</span>}
+        {statusClass && status && (
+          <span class:list={['badge', statusClass]}>{status}</span>
+        )}
+        {tags.map(tag => (
+          <a href={`/tags/${tag}`} class="tag">{tag}</a>
+        ))}
+      </div>
+    </header>
+
+    <article class="prose">
+      <slot />
+    </article>
+
+    <footer class="article-footer">
+      <a href={collection ? `/${collection}` : '/'} class="back-link">
+        ← back to {collection ?? 'home'}
+      </a>
+    </footer>
+
+  </div>
+</BaseLayout>

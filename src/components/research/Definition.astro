@@ -1,0 +1,8 @@
+---
+interface Props { title?: string; }
+const { title } = Astro.props;
+---
+<div class="math-block math-block--definition not-prose">
+  <div class="math-block__label">Definition{title ? ` — ${title}` : ''}</div>
+  <div class="math-block__body"><slot /></div>
+</div>

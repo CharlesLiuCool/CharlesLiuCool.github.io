@@ -1,5 +1,14 @@
-// @ts-check
 import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
 
-// https://astro.build/config
-export default defineConfig({});
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      remarkPlugins: [remarkMath],
+      rehypePlugins: [rehypeKatex],
+    }),
+  ],
+});

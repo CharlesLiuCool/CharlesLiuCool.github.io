@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentCard from '../../components/ui/ContentCard.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import { getCollection } from 'astro:content';
+
+const all    = await getCollection('research');
+const sorted = all.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+---
+<BaseLayout title="Research">
+  <div class="page-container animate-fade-up">
+    <PageHeader title="Research" description="Papers, preprints, and ongoing work in cryptography and theoretical CS." count={all.length} accent="purple" />
+    <div class="stack stack--md">
+      {sorted.map(item => (
+        <ContentCard
+          href={'/research/' + item.id}
+          title={item.data.title}
+          date={item.data.date}
+          summary={item.data.summary}
+          tags={item.data.tags}
+        />
+      ))}
+      {all.length === 0 && <div class="empty-state">No entries yet. Add .mdx files to src/content/research/</div>}
+    </div>
+  </div>
+</BaseLayout>

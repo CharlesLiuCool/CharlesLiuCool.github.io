@@ -1,0 +1,392 @@
+---
+title: "Single Systems: Classical and Quantum Information"
+date: "2026-05-27"
+tags: ["quantum-information", "linear-algebra", "dirac-notation", "qubits"]
+summary: "Notes covering classical probabilistic states, Dirac bra-ket notation, stochastic operations, and the foundations of quantum information including unitary operations on qubits. Taken from watching Qiskit YouTube channel, lecture by John Watrous."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Callout from '../../components/research/Callout.astro';
+
+# 1.1 Classical Information
+
+Consider a physical system that stores information, call it $X$.
+Assume $X$ can be in one of a finite number of *classical states* at each moment.
+Denote this classical state set by $\Sigma$.
+
+<Callout type="note" title="Examples">
+- If $X$ is a bit, then $\Sigma$ is the set containing 0 and 1
+- If $X$ is a six-sided die, then $\Sigma$ contains 1 through 6
+- If $X$ is a fan switch, then $\Sigma$ might contain high, medium, low, off
+</Callout>
+
+There may be *uncertainty* about the classical state, where each state has some *probability* associated with it.
+For example, a bit might be in state $0$ with probability $3/4$ and state $1$ with probability $1/4$:
+
+$$
+\Pr[X = 0] = \frac{3}{4} \quad \text{and} \quad \Pr[X = 1] = \frac{1}{4}
+$$
+
+A succinct way to represent this is a *column vector* — a *probability vector*:
+
+$$
+\begin{pmatrix} 3/4 \\ 1/4 \end{pmatrix}
+$$
+
+All entries are nonnegative and sum to $1$.
+
+## 1.1.1 Dirac Notation — Kets
+
+<Definition title="Ket">
+Let $\Sigma$ be a classical state set with elements in correspondence with $1, \ldots, |\Sigma|$.
+We write $|a\rangle$ for the column vector with a $1$ in the entry for $a \in \Sigma$ and $0$ elsewhere. This is called a **ket**.
+</Definition>
+
+**Example 1.** If $\Sigma$ contains 0 and 1:
+
+$$
+|0\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix} \qquad \text{and} \qquad |1\rangle = \begin{pmatrix} 0 \\ 1 \end{pmatrix}
+$$
+
+**Example 2.** If $\Sigma$ is the set of card suits ordered as spades, hearts, diamonds, clubs:
+
+$$
+|\spadesuit\rangle = \begin{pmatrix} 1 \\ 0 \\ 0 \\ 0 \end{pmatrix}, \quad |\heartsuit\rangle = \begin{pmatrix} 0 \\ 1 \\ 0 \\ 0 \end{pmatrix}, \quad |\diamondsuit\rangle = \begin{pmatrix} 0 \\ 0 \\ 1 \\ 0 \end{pmatrix}, \quad |\clubsuit\rangle = \begin{pmatrix} 0 \\ 0 \\ 0 \\ 1 \end{pmatrix}
+$$
+
+These are called *standard basis vectors*. Every vector decomposes uniquely as a linear combination of them:
+
+$$
+\begin{pmatrix} 3/4 \\ 1/4 \end{pmatrix} = \frac{3}{4} |0\rangle + \frac{1}{4} |1\rangle
+$$
+
+## 1.1.2 Measuring Probabilistic States
+
+When we *measure* a system $X$ in a probabilistic state, we observe a classical state chosen at random according to the probabilities.
+Observing state $a \in \Sigma$ collapses the state:
+
+$$
+\Pr[X = a] = 1 \quad \Longrightarrow \quad |a\rangle
+$$
+
+<Callout type="note" title="Example">
+For a bit with $\Pr[X=0] = 3/4$ and $\Pr[X=1] = 1/4$, measurement selects from:
+
+$$
+\frac{3}{4} |0\rangle + \frac{1}{4}|1\rangle
+$$
+
+choosing $|0\rangle$ with probability $3/4$ and $|1\rangle$ with probability $1/4$.
+</Callout>
+
+## 1.1.3 Deterministic Operations
+
+Every function $f: \Sigma \to \Sigma$ describes a *deterministic operation* mapping state $a$ to $f(a)$.
+
+<Definition title="Operation Matrix">
+Given $f: \Sigma \to \Sigma$, there is a unique matrix $M$ with $M|a\rangle = |f(a)\rangle$ for every $a \in \Sigma$:
+
+$$
+M(b,a) = \begin{cases} 1 & b = f(a) \\ 0 & b \neq f(a) \end{cases}
+$$
+
+where $M(b,a)$ is the $b$-th row, $a$-th column (indexed from $0$). The operation acts as $v \mapsto Mv$.
+</Definition>
+
+**Example.** For $\Sigma$ containing 0 and 1, the four functions $f: \Sigma \to \Sigma$ give:
+
+$$
+M_1 = \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix}, \quad M_2 = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, \quad M_3 = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, \quad M_4 = \begin{bmatrix} 0 & 0 \\ 1 & 1 \end{bmatrix}
+$$
+
+Column $a$ says "input $a$ maps to output $f(a)$", placing a $1$ in row $f(a)$.
+Matrix-vector multiplication then selects this column when applied to $|a\rangle$.
+
+## 1.1.4 Dirac Notation — Bras
+
+<Definition title="Bra">
+We write $\langle a|$ for the *row vector* with a $1$ in the entry for $a \in \Sigma$ and $0$ elsewhere. This is called a **bra**.
+</Definition>
+
+<Callout type="tip" title="Fun Fact">
+"Bra" and "Ket" together form "braket" — a nod to the mathematical bracket.
+</Callout>
+
+**Example.** If $\Sigma$ contains 0 and 1:
+
+$$
+\langle 0| = (1,\; 0) \qquad \text{and} \qquad \langle 1| = (0,\; 1)
+$$
+
+## 1.1.5 Bra × Ket
+
+Multiplying a bra times a ket is matrix multiplication yielding a scalar.
+
+**Example 1.**
+$$
+\langle 0|0\rangle = \begin{pmatrix} 1 & 0 \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = 1
+$$
+
+**Example 2.**
+$$
+\langle 0|1\rangle = \begin{pmatrix} 1 & 0 \end{pmatrix} \begin{pmatrix} 0 \\ 1 \end{pmatrix} = 0
+$$
+
+<Theorem title="Orthonormality of Standard Basis">
+$$
+\langle a | b \rangle = \begin{cases} 1 & a = b \\ 0 & a \neq b \end{cases}
+$$
+</Theorem>
+
+<Callout type="note" title="Deeper Note">
+The notation $\langle a | b \rangle$ is more than shorthand. By the Riesz Representation theorem, every continuous linear functional on a Hilbert space is represented by an inner product — which is precisely what the bra-ket captures.
+</Callout>
+
+## 1.1.6 Ket × Bra
+
+Multiplying a ket times a bra (reverse order) yields a matrix.
+
+**Example 1.**
+$$
+|1\rangle\langle 1| = \begin{bmatrix} 0 \\ 1 \end{bmatrix} \begin{bmatrix} 0 & 1 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+**Example 2.**
+$$
+|1\rangle\langle 0| = \begin{bmatrix} 0 \\ 1 \end{bmatrix} \begin{bmatrix} 1 & 0 \end{bmatrix} = \begin{bmatrix} 0 & 0 \\ 1 & 0 \end{bmatrix}
+$$
+
+<Theorem title="Outer Product">
+$|a\rangle\langle b|$ is all zeroes except a $1$ at position $(a, b)$.
+The ket chooses the row; the bra chooses the column.
+</Theorem>
+
+## 1.1.7 Deterministic Operations in Dirac Notation
+
+<Theorem title="Dirac Representation of Deterministic Operations">
+$$
+M = \sum_{b \in \Sigma} |f(b)\rangle\langle b|
+$$
+</Theorem>
+
+**Verification.** Applying $M$ to $|a\rangle$:
+
+$$
+M|a\rangle = \left(\sum_{b \in \Sigma} |f(b)\rangle\langle b|\right)|a\rangle = \sum_{b \in \Sigma} |f(b)\rangle \langle b | a \rangle
+$$
+
+Since $\langle b | a \rangle$ equals $1$ when $b = a$ and $0$ otherwise, the sum collapses to $|f(a)\rangle$.
+
+## 1.1.8 Probabilistic Operations
+
+*Probabilistic operations* are classical operations that may introduce randomness.
+
+<Callout type="note" title="Example">
+A probabilistic operation on a bit:
+- If the state is $0$: do nothing
+- If the state is $1$: flip the bit with probability $1/2$
+</Callout>
+
+<Definition title="Stochastic Matrix">
+A **stochastic matrix** represents a probabilistic operation:
+- All entries are nonnegative real numbers
+- Every column sums to $1$ (each column is a probability vector)
+</Definition>
+
+**Example.** The stochastic matrix for the operation above:
+
+$$
+\begin{bmatrix} 1 & 1/2 \\ 0 & 1/2 \end{bmatrix}
+$$
+
+This decomposes as a mixture of two deterministic operations:
+
+$$
+\begin{bmatrix} 1 & 1/2 \\ 0 & 1/2 \end{bmatrix} = \frac{1}{2} \begin{bmatrix} 1 & 1 \\ 0 & 0 \end{bmatrix} + \frac{1}{2} \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}
+$$
+
+## 1.1.9 Composing Operations
+
+<Theorem title="Composition of Probabilistic Operations">
+Composing operations $M_1, \ldots, M_n$ applied in order is represented by:
+
+$$
+M_n \cdots M_1
+$$
+</Theorem>
+
+<Callout type="warning" title="Ordering">
+The matrices appear in *reverse* order: $M_1$ is applied first but written last.
+Matrix multiplication is **not** commutative — order matters.
+</Callout>
+
+---
+
+# 1.2 Quantum Information
+
+A *quantum state* of a system is a column vector with complex entries whose squared absolute values sum to $1$.
+
+<Definition title="Euclidean Norm">
+For a vector with complex entries $\alpha_1, \ldots, \alpha_n$:
+
+$$
+\|v\| = \sqrt{\sum_{k=1}^n |\alpha_k|^2}
+$$
+
+Quantum states are complex-valued *unit vectors* under this norm.
+</Definition>
+
+*Qubits* are quantum bits. Examples:
+
+- Standard basis states: $|0\rangle$ and $|1\rangle$
+- Plus state $|+\rangle$:
+$$
+|{+}\rangle = \frac{1}{\sqrt{2}} |0\rangle + \frac{1}{\sqrt{2}} |1\rangle
+$$
+- Minus state $|-\rangle$:
+$$
+|{-}\rangle = \frac{1}{\sqrt{2}} |0\rangle - \frac{1}{\sqrt{2}} |1\rangle
+$$
+- An arbitrary example:
+$$
+\frac{1 + 2i}{3}|0\rangle - \frac{2}{3} |1\rangle
+$$
+
+## 1.2.1 Dirac Notation — Dagger
+
+For any column vector $|\psi\rangle$, the row vector $\langle\psi|$ is the **conjugate transpose**:
+
+$$
+\langle\psi| = |\psi\rangle^{\dagger}
+$$
+
+**Example.** If $|\psi\rangle$ is the state:
+
+$$
+|\psi\rangle = \frac{1+2i}{3}|0\rangle - \frac{2}{3}|1\rangle
+$$
+
+then the corresponding bra is:
+
+$$
+\langle\psi| = \frac{1-2i}{3}\langle 0| - \frac{2}{3}\langle 1|
+$$
+
+## 1.2.2 Measuring Quantum States
+
+For *standard basis measurements*, each outcome probability equals the absolute-value-squared of the corresponding entry.
+
+**Example 1.** Measuring the plus state:
+
+$$
+|{+}\rangle = \frac{1}{\sqrt{2}} |0\rangle + \frac{1}{\sqrt{2}} |1\rangle
+$$
+$$
+\Pr_0 = \left|\frac{1}{\sqrt{2}}\right|^2 = \frac{1}{2}, \qquad \Pr_1 = \left|\frac{1}{\sqrt{2}}\right|^2 = \frac{1}{2}
+$$
+
+**Example 2.** Measuring the minus state:
+
+$$
+|{-}\rangle = \frac{1}{\sqrt{2}} |0\rangle - \frac{1}{\sqrt{2}} |1\rangle
+$$
+$$
+\Pr_0 = \frac{1}{2}, \qquad \Pr_1 = \frac{1}{2}
+$$
+
+Note: the plus and minus states are *indistinguishable* by direct measurement — both give 50/50 outcomes.
+
+**Example 3.** Measuring the state with amplitude $(1+2i)/3$ on $|0\rangle$ and $-2/3$ on $|1\rangle$:
+
+$$
+\Pr_0 = \left|\frac{1+2i}{3}\right|^2 = \frac{5}{9}, \qquad \Pr_1 = \left|-\frac{2}{3}\right|^2 = \frac{4}{9}
+$$
+
+Measurement *collapses* the state: observing outcome $a$ sets the new state to $|a\rangle$.
+
+## 1.2.3 Unitary Operations
+
+<Definition title="Unitary Matrix">
+A square matrix $U$ with complex entries is **unitary** if:
+
+$$
+U^{\dagger}U = \mathbf{I} = UU^{\dagger}
+$$
+
+Equivalently, $U$ satisfies the norm-preservation property $\|Uv\| = \|v\|$ for all $v$.
+</Definition>
+
+Norm preservation means probability is preserved — making unitaries the natural model for quantum computation.
+If $v$ is a quantum state vector, then $Uv$ is also a quantum state vector.
+
+## 1.2.4 Qubit Unitary Operations
+
+**1. Pauli Operations**
+
+$$
+\mathbf{I} = \begin{bmatrix} 1 & 0 \\ 0 & 1 \end{bmatrix}, \quad X = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}, \quad Y = \begin{bmatrix} 0 & -i \\ i & 0 \end{bmatrix}, \quad Z = \begin{bmatrix} 1 & 0 \\ 0 & -1 \end{bmatrix}
+$$
+
+- $X$ is the **bit flip** (NOT operation): $X|0\rangle = |1\rangle$, $X|1\rangle = |0\rangle$
+- $Z$ is the **phase flip**: $Z|0\rangle = |0\rangle$, $Z|1\rangle = -|1\rangle$
+
+All Pauli operations are Hermitian, meaning each equals its own conjugate transpose.
+
+**2. Hadamard Operation**
+
+$$
+H = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}
+$$
+
+Verification that $H$ is unitary (since $H$ is real, the conjugate transpose is just the transpose, which equals $H$ itself):
+
+$$
+H^2 = \frac{1}{2}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \frac{1}{2}\begin{bmatrix} 2 & 0 \\ 0 & 2 \end{bmatrix} = \mathbf{I}
+$$
+
+Key actions of $H$:
+
+$$
+H|0\rangle = |{+}\rangle, \quad H|1\rangle = |{-}\rangle, \quad H|{+}\rangle = |0\rangle, \quad H|{-}\rangle = |1\rangle
+$$
+
+The Hadamard gate lets us distinguish the plus and minus states: apply $H$, then measure.
+
+**3. Phase Operations**
+
+$$
+P_\theta = \begin{bmatrix} 1 & 0 \\ 0 & e^{i\theta} \end{bmatrix}
+$$
+
+for any real $\theta$. Important special cases:
+
+$$
+S = P_{\pi/2} = \begin{bmatrix} 1 & 0 \\ 0 & i \end{bmatrix}, \qquad T = P_{\pi/4} = \begin{bmatrix} 1 & 0 \\ 0 & \frac{1+i}{\sqrt{2}} \end{bmatrix}
+$$
+
+The phase gate is Hermitian only when the phase equals $1$ or $-1$, reducing to a Pauli operation.
+Actions of $T$: $T|0\rangle = |0\rangle$ and:
+$$
+T|1\rangle = \frac{1+i}{\sqrt{2}}|1\rangle
+$$
+
+## 1.2.5 Composing Unitary Operations
+
+Compositions of unitary operations are represented by matrix multiplication, exactly as in the probabilistic setting.
+
+<Callout type="note" title="Example — Square Root of NOT">
+Define the square-root-of-NOT operation as the product $HSH$:
+
+$$
+HSH = \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} \begin{bmatrix} 1 & 0 \\ 0 & i \end{bmatrix} \frac{1}{\sqrt{2}}\begin{bmatrix} 1 & 1 \\ 1 & -1 \end{bmatrix} = \begin{bmatrix} \frac{1+i}{2} & \frac{1-i}{2} \\ \frac{1-i}{2} & \frac{1+i}{2} \end{bmatrix}
+$$
+
+Applying it twice yields the NOT operation:
+
+$$
+(HSH)^2 = \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix} = X
+$$
+
+This is a distinctly quantum phenomenon: no classical operation squares to NOT.
+</Callout>

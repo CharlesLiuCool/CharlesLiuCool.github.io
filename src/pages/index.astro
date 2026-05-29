@@ -1,17 +1,93 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContentCard from '../components/ui/ContentCard.astro';
+import Section from '../components/ui/Section.astro';
+import { SITE, HOME_SECTIONS } from '../config/site';
+import { getCollection } from 'astro:content';
 
+const research = await getCollection('research');
+const notes    = await getCollection('notes');
+const blog     = await getCollection('blog');
+
+const collections: Record<string, typeof research> = { research, notes, blog };
+
+const stats = [
+  { label: 'papers',  value: research.length, accentVar: 'var(--accent-purple)', href: '/research' },
+  { label: 'notes',   value: notes.length,    accentVar: 'var(--accent-cyan)',   href: '/notes'    },
+  { label: 'posts',   value: blog.length,     accentVar: 'var(--accent-green)',  href: '/blog'     },
+];
+
+// Resolve each homepage section to its items
+const sections = HOME_SECTIONS.map(sec => {
+  let items = collections[sec.collection] ?? [];
+  if ('filterBy' in sec && sec.filterBy) {
+    for (const [key, val] of Object.entries(sec.filterBy)) {
+      items = items.filter((i: any) => i.data[key] === val);
+    }
+  }
+  items = items
+    .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+    .slice(0, sec.limit);
+  return { ...sec, items };
+});
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Home" description={SITE.description}>
+  <div class="page-container animate-fade-up">
+
+    <!-- Hero -->
+    <section class="page-section">
+      <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-5);">
+        <span class="status-dot status-dot--green status-dot--pulse"></span>
+        <span class="label-meta">{SITE.status}</span>
+      </div>
+
+      <h1 class="hero-title">{SITE.name}</h1>
+
+      <p class="hero-body">
+        Researcher working on
+        <span style="color:var(--accent-purple);font-weight:500;">post-quantum cryptography</span>, with emphasis on
+        <span style="color:var(--accent-cyan);font-weight:500;">cryptographic protocols</span> and <span style="color:var(--accent-cyan);font-weight:500;">zero-knowledge proofs</span>. Interested in the foundations of theoretical computer science.
+        Currently at {SITE.institution}.
+      </p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);">
+        {['zero-knowledge', 'interactive proofs', 'sum-check', 'low-degree extensions', 'commitment schemes'].map(t => (
+          <span class="tag">{t}</span>
+        ))}
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="page-section" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);">
+      {stats.map(s => (
+        <a href={s.href} class="stat-card">
+          <div class="stat-card__value" style={`color:${s.accentVar};`}>{s.value}</div>
+          <div class="stat-card__label">{s.label}</div>
+        </a>
+      ))}
+    </section>
+
+    <!-- Dynamic homepage sections -->
+    {sections.map(sec => sec.items.length > 0 && (
+      <Section
+        title={sec.title}
+        href={sec.href}
+        accentVar={sec.accentVar}
+        layout={sec.layout}
+      >
+        {sec.items.map((item: any) => (
+          <ContentCard
+            href={`/${sec.collection}/${item.id}`}
+            title={item.data.title}
+            date={item.data.date}
+            summary={item.data.summary}
+            tags={item.data.tags}
+            status={item.data.status}
+          />
+        ))}
+      </Section>
+    ))}
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,8 @@
+---
+interface Props { title?: string; label?: string; }
+const { title, label = 'Theorem' } = Astro.props;
+---
+<div class="math-block math-block--theorem not-prose">
+  <div class="math-block__label">{label}{title ? ` — ${title}` : ''}</div>
+  <div class="math-block__body"><slot /></div>
+</div>

@@ -1,0 +1,38 @@
+---
+interface Props {
+  title: string;
+  href?: string;
+  accentVar?: string;
+  layout?: 'list' | 'grid';
+}
+
+const {
+  title,
+  href,
+  accentVar = 'var(--accent-purple)',
+  layout = 'list',
+} = Astro.props;
+---
+
+<section class="page-section">
+  <div class="section-header">
+    <div class="section-header__left">
+      <span class="label-section">{title}</span>
+    </div>
+    {href && (
+      <a
+        href={href}
+        class="link-accent"
+        style={`--hover-color: ${accentVar};`}
+        onmouseover={`this.style.color='${accentVar}'`}
+        onmouseout="this.style.color=''"
+      >
+        <span class="label-meta">all →</span>
+      </a>
+    )}
+  </div>
+
+  <div class:list={[layout === 'grid' ? 'grid-auto-cards' : 'stack stack--md']}>
+    <slot />
+  </div>
+</section>

@@ -1,0 +1,33 @@
+---
+import { COLLECTION_THEME } from '../../config/site';
+import type { Accent } from '../../config/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  count?: number;
+  accent?: Accent;
+}
+
+const { title, description, count, accent = 'purple' } = Astro.props;
+const accentVar = COLLECTION_THEME[
+  Object.keys(COLLECTION_THEME).find(k => COLLECTION_THEME[k].accent === accent) ?? 'research'
+]?.accentVar ?? 'var(--accent-purple)';
+---
+
+<div class="page-header">
+  <div class="page-header__title-row">
+    <h1 class="heading-section">{title}</h1>
+    {count !== undefined && (
+      <span
+        class="badge"
+        style={`color:${accentVar};background:color-mix(in srgb,${accentVar} 12%,transparent);border-color:color-mix(in srgb,${accentVar} 28%,transparent);`}
+      >
+        {count}
+      </span>
+    )}
+  </div>
+  {description && (
+    <p class="page-header__description">{description}</p>
+  )}
+</div>

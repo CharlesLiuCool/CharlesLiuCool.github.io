@@ -1,0 +1,39 @@
+---
+import { STATUS_CLASS, formatDate } from '../../config/site';
+
+interface Props {
+  href: string;
+  title: string;
+  date?: string;
+  summary?: string;
+  tags?: string[];
+  status?: string;
+  meta?: string;
+}
+
+const { href, title, date, summary, tags = [], status, meta } = Astro.props;
+const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
+---
+
+<a href={href} class="card card--link">
+  <div class="card__header">
+    <span class="heading-card">{title}</span>
+    {statusClass && (
+      <span class:list={['badge', statusClass]}>{status}</span>
+    )}
+  </div>
+
+  {summary && <p class="card__summary">{summary}</p>}
+
+  <div class="card__footer">
+    <div class="card__tags">
+      {tags.slice(0, 4).map(tag => (
+        <span class="tag">{tag}</span>
+      ))}
+    </div>
+    <div class="card__meta">
+      {meta  && <span class="label-meta">{meta}</span>}
+      {date  && <span class="label-meta">{formatDate(date)}</span>}
+    </div>
+  </div>
+</a>
