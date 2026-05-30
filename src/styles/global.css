@@ -18,3 +18,25 @@
 @import "./utilities.css";
 
 @import "katex/dist/katex.min.css";
+
+.tagline-wrap {
+   display: inline-block;
+   position: relative;
+ }
+ 
+ .tagline-text {
+   display: inline-block;
+   transition: opacity 1s ease, transform 1s ease;
+   opacity: 1;
+   transform: translateY(0px);
+ }
+ 
+ .tagline-text.fade-out {
+   opacity: 0;
+   transform: translateY(6px);
+ }
+ 
+ .tagline-text.fade-in {
+   opacity: 0;
+   transform: translateY(-6px);
+ }

@@ -28,7 +28,14 @@ function isActive(href: string) {
     </a>
     <div class="sidebar-status">
       <span class="status-dot status-dot--green status-dot--pulse"></span>
-      <span class="sidebar-status-text">{SITE.tagline}</span>
+    
+      <span class="sidebar-status-text">
+        <span class="tagline-wrap">
+          <span id="tagline" class="tagline-text">
+            {SITE.taglines[0]}
+          </span>
+        </span>
+      </span>
     </div>
   </div>
 
@@ -78,3 +85,31 @@ function isActive(href: string) {
   </div>
 
 </aside>
+
+<!--Script to rotate tagline -->
+<script is:inline define:vars={{ taglines: SITE.taglines }}>
+  let i = 0;
+  const el = document.getElementById("tagline");
+
+  function swapText(text) {
+    if (!el) return;
+
+    el.classList.add("fade-out");
+
+    setTimeout(() => {
+      el.textContent = text;
+
+      el.classList.remove("fade-out");
+      el.classList.add("fade-in");
+
+      requestAnimationFrame(() => {
+        el.classList.remove("fade-in");
+      });
+    }, 500);
+  }
+
+  setInterval(() => {
+    i = (i + 1) % taglines.length;
+    swapText(taglines[i]);
+  }, 5000);
+</script>
