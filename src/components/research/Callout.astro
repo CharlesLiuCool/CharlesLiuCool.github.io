@@ -1,5 +1,5 @@
 ---
-interface Props { title?: string; type?: 'note' | 'warning' | 'tip'; }
+interface Props { title?: string; type?: 'note' | 'warning' | 'tip' | 'question' | 'example'; }
 const { title = 'Note', type = 'note' } = Astro.props;
 ---
 <div class:list={['callout', `callout--${type}`, 'not-prose']}>

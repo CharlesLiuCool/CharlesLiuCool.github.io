@@ -1,12 +1,826 @@
 ---
 title: "Multiple Systems: Classical and Quantum Information"
 date: "2026-05-28"
-tags: ["quantum-information", "tensor-products", "entanglement", "bell-states", "compound-systems"]
-summary: "Notes covering classical probabilistic states, Dirac bra-ket notation, stochastic operations, and the foundations of quantum information including unitary operations on qubits. Taken from watching Qiskit YouTube channel, lecture by John Watrous."
+tags:
+  [
+    "quantum-information",
+    "tensor-products",
+    "entanglement",
+    "bell-states",
+    "compound-systems",
+  ]
+summary: "Classical and quantum compound systems, tensor products, independence, entanglement, measurements on subsystems, and operations on multipartite systems."
 ---
 
 import Definition from '../../components/research/Definition.astro';
 import Theorem from '../../components/research/Theorem.astro';
 import Callout from '../../components/research/Callout.astro';
 
-# coming soon after errors are fixed
+# 2.1 Classical Information
+
+## 2.1.1 Classical States
+
+Suppose we have two systems:
+
+- $X$ with classical state set $\Sigma$
+- $Y$ with classical state set $\Gamma$
+
+Viewing them together as a single system gives the compound system
+
+$$
+(X,Y)
+$$
+
+or simply
+
+$$
+XY.
+$$
+
+<Callout type="question" title="Question">
+What are the classical states of $(X,Y)$?
+</Callout>
+
+The classical state set of the compound system is the Cartesian product
+
+$$
+\Sigma \times \Gamma
+=
+\{(a,b): a\in\Sigma,\ b\in\Gamma\}.
+$$
+
+This generalizes naturally to multiple systems.
+
+If
+
+$$
+X_1,\dots,X_n
+$$
+
+have classical state sets
+
+$$
+\Sigma_1,\dots,\Sigma_n,
+$$
+
+then
+
+$$
+\Sigma_1\times\cdots\times\Sigma_n
+=
+\{
+(a_1,\dots,a_n)
+:
+a_i\in\Sigma_i
+\}.
+$$
+
+An $n$-tuple may also be written as a string:
+
+$$
+(a_1,\dots,a_n)
+\equiv
+a_1\cdots a_n.
+$$
+
+<Definition title="Lexicographic Ordering">
+Cartesian products are ordered lexicographically (dictionary order).
+
+- Individual state sets are assumed to already be ordered.
+- Significance decreases from left to right.
+</Definition>
+
+<Callout type="note" title="Example">
+For
+
+$$
+\{1,2,3\}\times\{0,1\}
+$$
+
+the ordering is
+
+$$
+(1,0),\ (1,1),\ (2,0),\ (2,1),\ (3,0),\ (3,1).
+$$
+
+Likewise,
+
+$$
+\{0,1\}\times\{0,1\}
+$$
+
+is ordered as
+
+$$
+00,\ 01,\ 10,\ 11.
+$$
+</Callout>
+
+## 2.1.2 Probabilistic States
+
+Probabilistic states on compound systems assign probabilities to elements of the Cartesian product.
+
+<Callout type="note" title="Example">
+For two bits $(X,Y)$:
+
+$$
+\Pr[(X,Y)=(0,0)]
+=
+\frac12
+$$
+
+$$
+\Pr[(X,Y)=(0,1)]
+=
+0
+$$
+
+$$
+\Pr[(X,Y)=(1,0)]
+=
+0
+$$
+
+$$
+\Pr[(X,Y)=(1,1)]
+=
+\frac12.
+$$
+
+Vector form:
+
+$$
+\begin{pmatrix}
+\frac12\\
+0\\
+0\\
+\frac12
+\end{pmatrix}
+$$
+</Callout>
+
+<Definition title="Independence">
+Systems $X$ and $Y$ are **independent** if
+
+$$
+\Pr[(X,Y)=(a,b)]
+=
+\Pr[X=a]\Pr[Y=b]
+$$
+
+for every
+
+$$
+a\in\Sigma,\qquad b\in\Gamma.
+$$
+</Definition>
+
+If
+
+$$
+|\pi\rangle
+=
+\sum_{(a,b)\in\Sigma\times\Gamma}
+p_{ab}|ab\rangle,
+$$
+
+then independence is equivalent to the existence of probability vectors
+
+$$
+|\phi\rangle
+=
+\sum_{a\in\Sigma}
+q_a|a\rangle
+$$
+
+and
+
+$$
+|\psi\rangle
+=
+\sum_{b\in\Gamma}
+r_b|b\rangle
+$$
+
+such that
+
+$$
+p_{ab}=q_a r_b.
+$$
+
+<Callout type="note" title="Example">
+The state
+
+$$
+|\pi\rangle
+=
+\frac16|00\rangle
++
+\frac1{12}|01\rangle
++
+\frac12|10\rangle
++
+\frac14|11\rangle
+$$
+
+factors as
+
+$$
+|\phi\rangle
+=
+\frac14|0\rangle
++
+\frac34|1\rangle
+$$
+
+and
+
+$$
+|\psi\rangle
+=
+\frac23|0\rangle
++
+\frac13|1\rangle.
+$$
+
+Therefore $X$ and $Y$ are independent.
+</Callout>
+
+<Callout type="note" title="Example">
+The state
+
+$$
+\frac12|00\rangle+\frac12|11\rangle
+$$
+
+does **not** factor and therefore represents correlated classical variables.
+</Callout>
+
+# 2.1.3 Tensor Products of Vectors
+
+<Definition title="Tensor Product">
+For vectors
+
+$$
+|\phi\rangle
+=
+\sum_{a\in\Sigma}\alpha_a|a\rangle
+$$
+
+and
+
+$$
+|\psi\rangle
+=
+\sum_{b\in\Gamma}\beta_b|b\rangle,
+$$
+
+their tensor product is
+
+$$
+|\phi\rangle\otimes|\psi\rangle
+=
+\sum_{(a,b)\in\Sigma\times\Gamma}
+\alpha_a\beta_b|ab\rangle.
+$$
+</Definition>
+
+Equivalently,
+
+$$
+\langle ab|\pi\rangle
+=
+\langle a|\phi\rangle
+\langle b|\psi\rangle.
+$$
+
+Common notations:
+
+$$
+|\phi\rangle|\psi\rangle
+$$
+
+and
+
+$$
+|\phi\otimes\psi\rangle.
+$$
+
+<Callout type="note" title="Example">
+If
+
+$$
+|\phi\rangle
+=
+\frac14|0\rangle+\frac34|1\rangle
+$$
+
+and
+
+$$
+|\psi\rangle
+=
+\frac23|0\rangle+\frac13|1\rangle,
+$$
+
+then
+
+$$
+|\phi\rangle\otimes|\psi\rangle
+=
+\frac16|00\rangle
++
+\frac1{12}|01\rangle
++
+\frac12|10\rangle
++
+\frac14|11\rangle.
+$$
+</Callout>
+
+### Bilinearity
+
+<Theorem title="Bilinearity of Tensor Products">
+Tensor products are linear in each argument:
+
+$$
+(|\phi_1\rangle+|\phi_2\rangle)\otimes|\psi\rangle
+=
+|\phi_1\rangle\otimes|\psi\rangle
++
+|\phi_2\rangle\otimes|\psi\rangle
+$$
+
+and
+
+$$
+|\phi\rangle\otimes
+(|\psi_1\rangle+|\psi_2\rangle)
+=
+|\phi\rangle\otimes|\psi_1\rangle
++
+|\phi\rangle\otimes|\psi_2\rangle.
+$$
+
+Scalars freely move across tensor products:
+
+$$
+(\alpha|\phi\rangle)\otimes|\psi\rangle
+=
+|\phi\rangle\otimes(\alpha|\psi\rangle)
+=
+\alpha(|\phi\rangle\otimes|\psi\rangle).
+$$
+</Theorem>
+
+# 2.1.4 Measurements of Probabilistic States
+
+<Callout type="question" title="Question">
+Suppose only $X$ is measured and $Y$ is left untouched. What happens?
+</Callout>
+
+For a probabilistic state
+
+$$
+\Pr[(X,Y)=(a,b)],
+$$
+
+the probability of observing
+
+$$
+X=a
+$$
+
+is
+
+$$
+\Pr[X=a]
+=
+\sum_{b\in\Gamma}
+\Pr[(X,Y)=(a,b)].
+$$
+
+The conditional state of $Y$ becomes
+
+$$
+\Pr[Y=b\mid X=a]
+=
+\frac{\Pr[(X,Y)=(a,b)]}
+{\Pr[X=a]}.
+$$
+
+In Dirac notation, if
+
+$$
+|\psi\rangle
+=
+\sum_{a\in\Sigma}
+|a\rangle
+\otimes
+\left(
+\sum_{b\in\Gamma}
+p_{ab}|b\rangle
+\right),
+$$
+
+then
+
+$$
+\Pr[X=a]
+=
+\sum_{b\in\Gamma}p_{ab}
+$$
+
+and the resulting state of $Y$ is
+
+$$
+\frac{
+\sum_{b\in\Gamma}
+p_{ab}|b\rangle
+}
+{
+\sum_{c\in\Gamma}
+p_{ac}
+}.
+$$
+
+# 2.1.5 Operations on Probabilistic States
+
+Probabilistic operations on compound systems are represented by stochastic matrices indexed by Cartesian products.
+
+<Callout type="note" title="Controlled-NOT">
+For bits $X$ and $Y$:
+
+- If $X=0$, do nothing.
+- If $X=1$, flip $Y$.
+
+Action on basis states:
+
+$$
+|00\rangle\mapsto|00\rangle
+$$
+
+$$
+|01\rangle\mapsto|01\rangle
+$$
+
+$$
+|10\rangle\mapsto|11\rangle
+$$
+
+$$
+|11\rangle\mapsto|10\rangle.
+$$
+
+Matrix:
+
+$$
+\begin{pmatrix}
+1&0&0&0\\
+0&1&0&0\\
+0&0&0&1\\
+0&0&1&0
+\end{pmatrix}
+$$
+</Callout>
+
+# 2.1.6 Tensor Products of Matrices
+
+<Definition title="Tensor Product of Matrices">
+For
+
+$$
+M
+=
+\sum_{a,b}
+\alpha_{ab}|a\rangle\langle b|
+$$
+
+and
+
+$$
+N
+=
+\sum_{c,d}
+\beta_{cd}|c\rangle\langle d|,
+$$
+
+their tensor product is
+
+$$
+M\otimes N
+=
+\sum_{a,b,c,d}
+\alpha_{ab}\beta_{cd}
+|ac\rangle\langle bd|.
+$$
+</Definition>
+
+Equivalently,
+
+$$
+(M\otimes N)
+(|\phi\rangle\otimes|\psi\rangle)
+=
+(M|\phi\rangle)
+\otimes
+(N|\psi\rangle).
+$$
+
+---
+
+# 2.2 Quantum Information
+
+## 2.2.1 Quantum States
+
+For two qubits, the classical state set is
+
+$$
+\{00,01,10,11\}.
+$$
+
+Examples of valid quantum states:
+
+$$
+\frac12|00\rangle
++
+\frac{i}{2}|01\rangle
+-
+\frac12|10\rangle
+-
+\frac{i}{2}|11\rangle
+$$
+
+$$
+\frac35|00\rangle
+-
+\frac45|11\rangle
+$$
+
+$$
+|01\rangle.
+$$
+
+A state of the form
+
+$$
+|\phi\rangle\otimes|\psi\rangle
+$$
+
+is called a **product state**.
+
+<Callout type="note" title="Example">
+The state
+
+$$
+\frac12|00\rangle
++
+\frac{i}{2}|01\rangle
+-
+\frac12|10\rangle
+-
+\frac{i}{2}|11\rangle
+$$
+
+factors as
+
+$$
+\left(
+\frac1{\sqrt2}|0\rangle
+-
+\frac1{\sqrt2}|1\rangle
+\right)
+\otimes
+\left(
+\frac1{\sqrt2}|0\rangle
++
+\frac{i}{\sqrt2}|1\rangle
+\right).
+$$
+</Callout>
+
+<Callout type="note" title="Entanglement">
+The state
+
+$$
+\frac1{\sqrt2}|00\rangle
++
+\frac1{\sqrt2}|11\rangle
+$$
+
+cannot be written as a tensor product.
+
+Such states are called **entangled states**.
+</Callout>
+
+## Bell Basis
+
+<Definition title="Bell Basis">
+$$
+|\phi^+\rangle
+=
+\frac1{\sqrt2}|00\rangle
++
+\frac1{\sqrt2}|11\rangle
+$$
+
+$$
+|\phi^-\rangle
+=
+\frac1{\sqrt2}|00\rangle
+-
+\frac1{\sqrt2}|11\rangle
+$$
+
+$$
+|\psi^+\rangle
+=
+\frac1{\sqrt2}|01\rangle
++
+\frac1{\sqrt2}|10\rangle
+$$
+
+$$
+|\psi^-\rangle
+=
+\frac1{\sqrt2}|01\rangle
+-
+\frac1{\sqrt2}|10\rangle.
+$$
+</Definition>
+
+## GHZ and W States
+
+<Definition title="GHZ State">
+$$
+\frac1{\sqrt2}|000\rangle
++
+\frac1{\sqrt2}|111\rangle
+$$
+</Definition>
+
+<Definition title="W State">
+$$
+\frac1{\sqrt3}|001\rangle
++
+\frac1{\sqrt3}|010\rangle
++
+\frac1{\sqrt3}|100\rangle
+$$
+</Definition>
+
+## 2.2.2 Measurements
+
+For a quantum state
+
+$$
+|\psi\rangle
+=
+\sum_{a,b}
+\alpha_{ab}|ab\rangle,
+$$
+
+measuring only $X$ gives outcome $a$ with probability
+
+$$
+\Pr[a]
+=
+\sum_b |\alpha_{ab}|^2.
+$$
+
+If
+
+$$
+|\psi\rangle
+=
+\sum_a
+|a\rangle\otimes|\phi_a\rangle,
+$$
+
+then:
+
+1. Outcome probability:
+
+$$
+\Pr[a]
+=
+\|\phi_a\|^2
+$$
+
+2. Post-measurement state:
+
+$$
+|a\rangle
+\otimes
+\frac{|\phi_a\rangle}
+{\|\phi_a\|}.
+$$
+
+## 2.2.3 Unitary Operations
+
+Independent operations on systems
+
+$$
+X_1,\dots,X_n
+$$
+
+with unitaries
+
+$$
+U_1,\dots,U_n
+$$
+
+combine as
+
+$$
+U_1\otimes\cdots\otimes U_n.
+$$
+
+In particular,
+
+$$
+U\otimes I
+$$
+
+means apply $U$ to one subsystem and do nothing to the other.
+
+<Callout type="note" title="Example">
+Suppose $X$ and $Y$ are qubits
+Performing a Hadamard operation on $Y$ and doing nothing to $X$ is equivalent to performing this unitary operation on $(X,Y)$
+$$\mathbf{I} \otimes \mathbf{H} = \begin{pmatrix} 1 & 0 \\ 0 &  1 \end{pmatrix} \otimes \begin{pmatrix} \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}} \end{pmatrix}$$
+</Callout>
+
+## SWAP
+
+<Definition title="SWAP Operation">
+For systems sharing the same basis,
+
+$$
+\text{SWAP}
+(|\phi\rangle\otimes|\psi\rangle)
+=
+|\psi\rangle\otimes|\phi\rangle.
+$$
+
+Equivalently,
+
+$$
+\text{SWAP}
+=
+\sum_{a,b}
+|a\rangle\langle b|
+\otimes
+|b\rangle\langle a|.
+$$
+</Definition>
+
+<Theorem title="Bell States and SWAP">
+$$
+\text{SWAP}|\phi^+\rangle
+=
+|\phi^+\rangle
+$$
+
+$$
+\text{SWAP}|\phi^-\rangle
+=
+|\phi^-\rangle
+$$
+
+$$
+\text{SWAP}|\psi^+\rangle
+=
+|\psi^+\rangle
+$$
+
+$$
+\text{SWAP}|\psi^-\rangle
+=
+-|\psi^-\rangle.
+$$
+</Theorem>
+
+## Controlled Operations
+
+<Definition title="Controlled-U">
+Let $X$ be a qubit and $Y$ be any quantum system.
+
+The controlled-$U$ operation is
+
+$$
+|0\rangle\langle0|
+\otimes I_Y
++
+|1\rangle\langle1|
+\otimes U.
+$$
+
+In block form:
+
+$$
+\begin{pmatrix}
+I_Y & 0\\
+0 & U
+\end{pmatrix}.
+$$
+</Definition>

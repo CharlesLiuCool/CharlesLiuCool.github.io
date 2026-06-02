@@ -157,6 +157,7 @@ a.tag:hover {
   margin-bottom: var(--space-3);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -417,6 +418,9 @@ a.tag:hover {
 .callout--note    { background: var(--accent-teal-bg);   border-color: var(--accent-teal-bdr); }
 .callout--warning { background: var(--accent-peach-bg);  border-color: var(--accent-peach-bdr); }
 .callout--tip     { background: var(--accent-green-bg);  border-color: var(--accent-green-bdr); }
+.callout--question     { background: var(--accent-amber-bg);  border-color: var(--accent-amber-bdr); }
+.callout--example     { background: var(--accent-green-bg);  border-color: var(--accent-green-bdr); }
+
 
 .callout__label {
   font-family: var(--font-serif);
@@ -432,6 +436,8 @@ a.tag:hover {
 .callout--note    .callout__label { color: var(--accent-teal); }
 .callout--warning .callout__label { color: var(--accent-peach); }
 .callout--tip     .callout__label { color: var(--accent-green); }
+.callout--question .callout__label { color: var(--accent-amber); }
+.callout--example     .callout__label { color: var(--accent-green); }
 
 .callout__body {
   font-size: var(--text-sm);
