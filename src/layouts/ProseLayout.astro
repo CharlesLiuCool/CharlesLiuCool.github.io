@@ -7,11 +7,12 @@ interface Props {
   date?: string;
   tags?: string[];
   summary?: string;
+  authors?: string[]
   status?: string;
   collection?: string;
 }
 
-const { title, date, tags = [], summary, status, collection } = Astro.props;
+const { title, date, tags = [], summary, authors = [], status, collection } = Astro.props;
 const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
 ---
 
@@ -28,6 +29,13 @@ const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
 
     <header class="article-header">
       <h1 class="article-title">{title}</h1>
+      {Array.isArray(authors) && authors.length > 0 && (
+        <div class="article-authors">
+          {authors.map((a) => (
+            <span class="tag">{a}</span> //TEMP FIX: use tags
+          ))}
+        </div>
+      )}
       {summary && <p class="article-summary">{summary}</p>}
       <div class="article-meta">
         {date && <span class="label-meta">{formatDate(date, 'long')}</span>}

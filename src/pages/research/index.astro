@@ -17,6 +17,7 @@ const sorted = all.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.d
           title={item.data.title}
           date={item.data.date}
           summary={item.data.summary}
+          authors={item.data.authors}
           tags={item.data.tags}
         />
       ))}

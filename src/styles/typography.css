@@ -110,6 +110,13 @@
   margin-bottom: var(--space-4);
 }
 
+.article-authors {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  color: var(--text-faint);
+  margin-bottom: var(--space-4);
+}
+
 .article-meta {
   display: flex;
   flex-wrap: wrap;

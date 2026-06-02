@@ -5,13 +5,14 @@ interface Props {
   href: string;
   title: string;
   date?: string;
+  authors?: string[];
   summary?: string;
   tags?: string[];
   status?: string;
   meta?: string;
 }
 
-const { href, title, date, summary, tags = [], status, meta } = Astro.props;
+const { href, title, date, authors, summary, tags = [], status, meta } = Astro.props;
 const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
 ---
 
@@ -23,6 +24,11 @@ const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
     )}
   </div>
 
+  {authors && authors.length > 0 && (
+    <p class="card__authors">
+      {authors.join(', ')}
+    </p>
+  )}
   {summary && <p class="card__summary">{summary}</p>}
 
   <div class="card__footer">

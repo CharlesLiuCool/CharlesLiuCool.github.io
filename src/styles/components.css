@@ -162,6 +162,18 @@ a.tag:hover {
   overflow: hidden;
 }
 
+.card__authors {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--space-2);
+  margin-bottom: var(--space-4);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+
 .card__footer {
   display: flex;
   align-items: center;
