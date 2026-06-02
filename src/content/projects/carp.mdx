@@ -1,0 +1,276 @@
+---
+title: "CARP - Differential Privacy for Open Source AI"
+date: "2026-02-22"
+tags: ["differential privacy", "privacy-preserving", "AI", "federated learning"]
+summary: "A privacy-preserving federated learning platform enabling hospitals to collaboratively train diabetes prediction models without sharing sensitive patient data."
+authors: ["Charles Liu", "Anh (Alex) Duong", "Russell Habib", "Peter Liu"]
+status: "archived"
+repo: "https://github.com/CharlesLiuCool/carp-crimsoncode-2026"
+---
+
+import Callout from '../../components/research/Callout.astro';
+import Mermaid from '../../components/plugins/Mermaid.astro';
+
+> 3rd Place — Advanced Track, CrimsonCode 2026 Hackathon (Washington State University)
+
+CARP (Collaborative AI with Robust Privacy) is a privacy-preserving machine learning platform that allows hospitals to collaboratively train AI models on sensitive medical data without exposing patient records.
+
+Built during the 24-hour CrimsonCode 2026 Hackathon, CARP combines **differential privacy**, **federated learning**, and **model explainability** to create a practical workflow for training healthcare AI systems while maintaining strong privacy guarantees.
+
+---
+
+## Motivation
+
+Modern AI systems require large amounts of data to achieve strong predictive performance. In healthcare, however, data sharing is heavily restricted due to privacy concerns and regulatory requirements.
+
+CARP explores a different approach:
+
+- Patient records never leave hospital infrastructure.
+- Models are trained locally on sensitive data.
+- Only privacy-preserving model updates are shared.
+- A central server aggregates knowledge from multiple hospitals.
+- The resulting model remains openly accessible.
+
+Using diabetes risk prediction as a case study, we demonstrate how institutions can collaborate without directly sharing patient information.
+
+---
+
+## System Overview
+
+<Mermaid>
+flowchart TB
+
+    subgraph Hospitals
+        H1[Hospital Client]
+        H2[Hospital Client]
+        H3[Hospital Client]
+    end
+
+    H1 --> DP1[Local Differentially Private Training]
+    H2 --> DP2[Local Differentially Private Training]
+    H3 --> DP3[Local Differentially Private Training]
+
+    DP1 --> W1[Model Weights]
+    DP2 --> W2[Model Weights]
+    DP3 --> W3[Model Weights]
+
+    W1 --> FED[Federated Aggregation]
+    W2 --> FED
+    W3 --> FED
+
+    FED --> SEC[Secure Masking<br/>Shared Randomness]
+
+    SEC --> GLOBAL[Global Diabetes Risk Model]
+
+    GLOBAL --> SHAP[SHAP Explainability]
+    GLOBAL --> LLM[Gemini / Groq Interpretation]
+    GLOBAL --> LOGS[Training Logs & Metrics]
+    GLOBAL --> DB[(PostgreSQL)]
+
+    USERS[Researchers & Hospitals]
+    USERS --> GLOBAL
+</Mermaid>
+
+CARP consists of two major components:
+
+### Hospital Client
+
+A local application deployed within a hospital environment.
+
+Features:
+
+- CSV patient dataset upload
+- Local model training
+- Configurable differential privacy parameters
+- Custom epochs and batch sizes
+- Export of trained model weights (`.pt`)
+
+Patient data never leaves the hospital.
+
+![Client View](/projects/carp/client-view.jpg)
+
+---
+
+### Central Aggregation Server
+
+Once local training is complete, hospitals upload their model weights to a central server.
+
+The server:
+
+- Aggregates weights using federated learning
+- Updates a shared diabetes prediction model
+- Tracks model performance over time
+- Stores model versions in PostgreSQL
+- Allows model querying and export
+
+This enables collaborative learning without centralizing patient records.
+
+![Federated Learning](/projects/carp/server-view.jpg)
+
+---
+
+## Differential Privacy
+
+A core goal of CARP is protecting sensitive medical information during training.
+
+Each hospital trains locally using:
+
+```math
+(\varepsilon, 10^{-5})\text{-Differential Privacy}
+```
+
+The privacy budget is configurable, allowing institutions to balance:
+
+- Privacy protection
+- Model utility
+- Dataset size constraints
+
+By introducing controlled noise during optimization, individual patient records become significantly harder to reconstruct from model parameters.
+
+---
+
+## Federated Learning
+
+Rather than sharing raw medical data, participating hospitals share only model updates.
+
+The aggregation process:
+
+1. Train locally
+2. Upload encrypted model weights
+3. Aggregate updates
+4. Produce a stronger global model
+
+To further improve privacy, CARP implements secure aggregation through masking and shared randomness.
+
+The global model only updates after sufficient participation from multiple hospitals, reducing the influence of any single contributor.
+
+---
+
+## Explainable Predictions
+
+Trust is critical in healthcare AI.
+
+CARP incorporates two explainability layers.
+
+### SHAP Analysis
+
+SHAP values show how each patient feature contributes to the final diabetes risk prediction.
+
+![SHAP Analysis](/projects/carp/shap.jpg)
+
+This allows clinicians to understand which variables influenced the model's decision.
+
+---
+
+### LLM-Based Guidance
+
+We integrated Groq and Gemini APIs to generate human-readable explanations of prediction outputs.
+
+The system converts model statistics into accessible summaries that help users interpret results beyond raw probability scores.
+
+---
+
+## Monitoring and Evaluation
+
+The aggregation server includes tools for tracking model performance across training rounds.
+
+Features include:
+
+- Accuracy tracking
+- Training history logs
+- Metric visualizations
+- Model version management
+
+**PHOTO SOON**
+
+This provides transparency into how the global model evolves as more hospitals contribute updates.
+
+---
+
+## Technical Stack
+
+### Frontend
+
+- React
+- TypeScript
+
+### Backend
+
+- Flask
+- Python
+
+### Machine Learning
+
+- PyTorch
+- Differential Privacy Training
+- SHAP
+
+### Infrastructure
+
+- Docker
+- PostgreSQL
+
+### AI Services
+
+- Groq API
+- Google Gemini
+
+---
+
+## Key Challenges
+
+### Privacy vs. Accuracy
+
+Choosing differential privacy parameters that preserved utility while maintaining strong privacy guarantees.
+
+### Federated Aggregation
+
+Designing a workflow that allowed multiple hospitals to contribute updates without exposing sensitive information.
+
+### Explainability
+
+Providing meaningful interpretation of model predictions in a healthcare setting.
+
+### Time Constraints
+
+Building a complete end-to-end system within a 24-hour hackathon environment.
+
+---
+
+## Results
+
+In less than 24 hours, our team successfully delivered:
+
+- Local differential privacy training
+- Federated model aggregation
+- Secure weight sharing workflow
+- Explainable AI analysis with SHAP
+- LLM-generated prediction summaries
+- Dockerized deployment pipeline
+
+The project earned:
+
+>**3rd Place — Advanced Track**
+>
+> CrimsonCode 2026 Hackathon  
+> Washington State University
+
+---
+
+## Reflection
+
+CARP demonstrated that privacy-preserving AI is achievable using modern open-source tools.
+
+By combining differential privacy, federated learning, and explainability techniques, we built a practical prototype showing how healthcare organizations can collaboratively train machine learning models while keeping sensitive patient data local.
+
+Future work could explore improved AI metrics, larger-scale deployments, stronger secure aggregation protocols, and support for additional medical prediction tasks.
+
+<Callout type="note" title="Fun Fact">
+CARP stands for **C**harlex, **A**lex, **R**ussell, and **P**eter.
+</Callout>
+
+---
+
+## Links
+
+- GitHub Repository: https://github.com/CharlesLiuCool/carp-crimsoncode-2026

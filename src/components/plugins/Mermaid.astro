@@ -1,0 +1,23 @@
+---
+const chart = await Astro.slots.render("default");
+---
+
+<!--FUTURE: MERMAID PLUGIN BROKEN, FIX LATEr -->
+
+<div class="mermaid" set:html={chart}></div>
+
+<script type="module" is:inline>
+  import mermaid from "mermaid";
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "dark",
+  });
+
+  // wait until DOM is ready
+  requestAnimationFrame(() => {
+    mermaid.run({
+      querySelector: ".mermaid",
+    });
+  });
+</script>
