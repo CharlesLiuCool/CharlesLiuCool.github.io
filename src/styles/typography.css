@@ -123,6 +123,7 @@
   font-size: var(--text-base);
   color: var(--text-secondary);
   line-height: var(--leading-loose);
+  font-size: calc(var(--text-base) * var(--notes-scale)); /* Apply notes scale, configure in tokens.css, FUTURE: possibly make configurable in website*/ 
   max-width: none;
 }
 

@@ -375,7 +375,6 @@ a.tag:hover {
 
 .math-block__label {
   font-family: var(--font-serif);
-  font-size: var(--text-sm);
   font-style: italic;
   font-weight: 600;
   color: var(--text-muted);
@@ -391,7 +390,6 @@ a.tag:hover {
 .math-block--lemma     .math-block__label { color: var(--accent-amber); }
 
 .math-block__body {
-  font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: var(--leading-loose);
 }
@@ -424,13 +422,13 @@ a.tag:hover {
 
 .callout__label {
   font-family: var(--font-serif);
-  font-size: var(--text-sm);
   font-style: italic;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: none;
   letter-spacing: var(--tracking-normal);
   margin-bottom: var(--space-2);
+  
 }
 
 .callout--note    .callout__label { color: var(--accent-teal); }
@@ -440,7 +438,6 @@ a.tag:hover {
 .callout--example     .callout__label { color: var(--accent-green); }
 
 .callout__body {
-  font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: var(--leading-normal);
 }
@@ -505,4 +502,20 @@ a.tag:hover {
 .callout__body em {
   color: var(--accent-amber);
   font-style: italic;
+}
+
+/*Font Scaling*/
+.callout {
+  font-size: calc(var(--text-sm) * var(--callout-scale));
+}
+
+.math-block {
+  padding: calc(var(--space-4) * var(--callout-scale))
+           calc(var(--space-5) * var(--callout-scale));
+  margin: calc(var(--space-6) * var(--callout-scale)) 0;
+}
+
+.math-block__label,
+.math-block__body {
+  font-size: calc(var(--text-sm) * var(--callout-scale));
 }

@@ -4,6 +4,9 @@
 ───────────────────────────────────────────────────────────── */
 
 :root {
+  /* ── Reading preferences ─────────────────────────────── */
+  --notes-scale: 1.0;
+  --callout-scale: 1.1;
   /* ── Backgrounds ───────────────────────────────────────── */
   --bg-base:     #1e1e2e;   /* mocha base */
   --bg-surface:  #181825;   /* mocha mantle — sidebar, raised panels */
