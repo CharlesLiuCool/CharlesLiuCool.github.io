@@ -425,6 +425,17 @@ a.tag:hover {
   padding: var(--space-4) var(--space-5);
   margin: var(--space-6) 0;
 }
+
+.callout ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.callout li {
+  margin: 0.25rem 0;
+}
+
 .callout--note    { background: var(--accent-teal-bg);   border-color: var(--accent-teal-bdr); }
 .callout--warning { background: var(--accent-peach-bg);  border-color: var(--accent-peach-bdr); }
 .callout--tip     { background: var(--accent-green-bg);  border-color: var(--accent-green-bdr); }

@@ -1,67 +1,178 @@
 ---
-title: "Why Zero-Knowledge Proofs Are Not Magic"
-date: "2026-04-10"
-tags: ["zero-knowledge", "explainer", "opinion"]
-summary: "A grounded look at what ZK proofs actually do — dispelling the mysticism and making the core ideas precise."
+title: "Why Zero-Knowledge Proofs aren't Magic"
+date: "2026-06-03"
+tags: ["zero-knowledge", "cryptography", "blockchain", "theory"]
+summary: "The origins, intuition, and formal definition of zero-knowledge proofs."
 featured: true
 ---
 
 import Callout from '../../components/research/Callout.astro';
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
 
-Every few months, someone tells me zero-knowledge proofs are "mathematical magic."
-They're not. They're a beautifully structured application of a few core ideas that,
-once you see them clearly, feel almost obvious.
+## Background of Zero-Knowledge Proofs
 
-This post is my attempt to give an honest, grounded introduction — no hand-waving,
-but also no prerequisites beyond basic probability and a rough sense of what a polynomial is.
+In the 1980's, Shafi Goldwasser, Silvio Micali, and Charles Rackoff began questioning what it really means to "prove" something. They asked the radical question:
 
-## What ZK Is Actually Doing
-
-A zero-knowledge proof lets a prover convince a verifier of a statement's truth
-**without revealing why it's true**.
-
-The canonical example: I know a graph coloring. You want to verify I know one. But I don't
-want to show you the coloring itself.
-
-The ZK protocol lets me prove "I know a valid 3-coloring" to any level of confidence you want,
-while you learn *nothing* about the actual colors.
-
-<Callout type="note" title="The three properties">
-Any ZK proof system satisfies: **completeness** (honest prover always convinces), **soundness** (dishonest
-prover fails with high probability), and **zero-knowledge** (verifier learns nothing beyond truth of statement).
+<Callout type="question" title="Question">
+  <p>
+    What is the minimum amount of knowledge that must be revealed in a proof?
+  </p>
 </Callout>
 
-## The Hard Part Is Soundness
+The answer they obtained was seemingly paradoxical, and led to the emergence of a new field called zero-knowledge.
 
-Most explanations gloss over soundness. But soundness is the hard part, and it's where all the
-interesting mathematics lives.
+<Callout type="idea" title="Core Idea">
+  <p>
+    You can prove to someone you know something without revealing the solution
+    or giving any additional information.
+  </p>
+</Callout>
 
-For *interactive* proofs, soundness comes from randomness. The verifier sends random challenges;
-a cheating prover can't predict them and can't answer correctly on a false statement.
+Their work *"The Knowledge Complexity of Interactive Proof Systems"* introduced in 1985 became a seminal piece of literature. With this concept, we were able to develop many crucial applications.
 
-For *non-interactive* proofs (zkSNARKs), we use the Fiat-Shamir transform — replace the verifier's
-random messages with a hash of the transcript. The proof becomes a string you can verify offline.
+<Callout type="note" title="Applications">
+- Authentication: Proving you know a password without revealing it
+- Blockchain: Proving you own the coins and transactions actually occurred without revealing secrets, identities, and amounts
+- Identity Verification: Proving you are over a certain age (like 21) without revealing additional information like your age, name, address, etc.
+</Callout>
 
-## What Makes It "Zero-Knowledge"
+This is extremely impactful, and offers a new layer to digital privacy and what we can achieve. Think about the dangers or privacy intrusions of revealing passwords to malicious companies, revealing all monetary transactions to the public, or showing all bars your full personal information through IDs.
 
-The formal definition is surprisingly elegant: a proof is zero-knowledge if there exists a
-**simulator** that can produce transcripts indistinguishable from real ones — without knowing
-the witness.
+### Key Milestones
 
-If a simulator can fake the transcripts, then the verifier couldn't have learned anything real
-from the interaction. The simulation argument is the mathematical way of saying "you learned nothing."
+- **1985** — Formal definition of zero-knowledge proofs
+- **1990s** — Development of efficient protocols for specific problems (e.g., graph isomorphism)
+- **2000s** — Theoretical refinement, complexity class connections (**IP = PSPACE**)
+- **2010s** — Practical breakthroughs: **zk-SNARKs** used in cryptocurrencies like Zcash
+- **2020s** — Rapid growth in blockchain scaling, privacy systems, and verifiable computation
 
-## What ZK Doesn't Give You
-
-ZK proofs don't:
-- Make problems easier to solve
-- Hide the *statement* (only the witness)
-- Work without computational assumptions (for SNARKs)
-- Eliminate trust entirely (trusted setups are real)
-
-The mysticism usually comes from collapsing these distinctions.
+Goldwasser and Micali later received the **Turing Award (2012)** for their foundational contributions.
 
 ---
 
-In future posts I'll dig into specific constructions — starting with Groth16,
-which is the SNARK behind much of the production ZK infrastructure today.
+## Examples: Getting a Feel for Zero-Knowledge Proofs
+
+### Proving Different Colors to a Blind Man
+
+Suppose you are trying to prove to a blind man that a piece of paper is different colors on either side. How would you do it? After all, he can't see the colors.
+
+First, you need to give the man some privacy and a coin (source of randomness).
+
+The blind man holds the piece of paper, and mentally notes one side as "heads" and one side as "tails". He doesn't change this orientation ever again.
+
+He goes in private, and flips the coin:
+
+- If heads, he lets the "heads" side of the paper face up
+- If tails, he lets the "tails" side of the paper face up
+
+He then goes out and asks you: "What side of the paper is facing up"? You answer, and he keeps track. He then goes back in, flips the coin, and repeats the process.
+
+### Completeness
+
+If you know the truth (since you can see the paper), you will always answer correctly. When they keep track, you will always say a singular color on heads and a singular different color on tails. This will be completely consistent.
+
+For instance:
+
+- Heads: Red
+- Heads: Red
+- Tails: Blue
+- Heads: Red
+
+### Soundness
+
+If you don't know the truth and try to lie, you have no idea what the coin landed on. You have a 50% chance of failing on each coin flip, guessing an answer that contradicts your previous answers.
+
+For instance:
+
+- Heads: Red
+- Heads: Red (lucky guess!)
+- Tails: Blue (lucky guess!)
+- Heads: Blue (boo, got caught)
+
+So each round decreases your probability of success by $\frac{1}{2}$, and after enough rounds, your cheating success rate becomes nearly $0$.
+
+### Zero-Knowledge
+
+The blind man has no certainty of gaining additional knowledge like the color of the sheet. After all, nothing is stopping you from saying "Green" or anything else, like "Banana" every time one side of the paper comes up. The only thing that matters is you stay consistent based on the orientation.
+
+In fact, since the blind man has the coin, he could've simulated the whole experience to himself, saying one color on heads and another on tails (although it would be a rather boring experiment). The only thing he gained from this encounter with you was that the paper is indeed different colors on both sides!
+
+---
+
+## Achieving Zero-Knowledge
+
+At its heart, a zero-knowledge proof involves two parties, one proving a truth of a statement to another without revealing additional information. We label these:
+
+- $P$: a prover
+- $V$: a verifier
+- $x \in L$: some statement
+
+We classify a zero-knowledge proof with a few properties.
+
+### Completeness
+
+Every time the prover is indeed telling the truth and follows the protocol honestly, they should successfully convince the verifier.
+
+### Soundness
+
+Every time a possibly malicious prover tries to lie and prove a false statement, they should get caught and fail.
+
+### Zero-Knowledge
+
+Finally, the most subtle property: for every possibly malicious verifier trying to learn more than they should, they must gain no useful information from the interaction. We formalize this by saying their view after interaction could have been simulated by themselves without the prover.
+
+Think of it as if you can pick the "questions" yourself, you can come up with the right answers. But if you get asked the questions, you have to know the answers or you'll likely get caught after a few questions.
+
+<Callout type="note" title="Exam Thought-Experiment Analogy">
+
+The framework looks something like:
+
+- **Simulator**: if you see the question first you can write a perfect answer
+- **Prover**: if you submit a sealed sheet with the answer before seeing the question, you have to actually possess the knowledge
+
+Faking works when you control the question, but proving means surviving any question.
+
+</Callout>
+
+<Definition title="Zero-Knowledge Proof">
+
+**Completeness**
+
+If $x \in L$ and the prover follows the protocol honestly, then
+
+$$
+\Pr[\text{Verifier Accepts}] = 1 \text{ (or very close to }1)
+$$
+
+**Soundness**
+
+If $x \notin L$, then no (possibly malicious) prover $P^*$ can convince the verifier beyond negligible probability.
+
+$$
+\Pr[\text{Verifier Accepts}]
+$$
+
+**Zero-Knowledge**
+
+For every (possibly malicious) verifier $V^*$, there exists a simulator $S$ such that
+
+$$
+\text{View}_{V^*}(P \leftrightarrow V^*) \approx S(x)
+$$
+
+</Definition>
+
+<Callout type="note" title="Clarification">
+
+- $x \in L$ refers to a statement $x$ being a true statement (in $L$)
+- $P \leftrightarrow V^*$ refers to the full interaction between the prover and verifier
+- $\text{View}_{V^*}(P \leftrightarrow V^*)$ is a random variable, a distribution over views based on different possibilities of random conversations between prover and verifier
+- $S(x)$ is a random variable, a distribution the verifier can generate on their own
+- $\text{View}_{V^*}(P \leftrightarrow V^*) \approx S(x)$ means the two distributions are basically the same
+
+</Callout>
+
+A particular proof is just a sample from the distribution $\text{View}_{V^*}(P \leftrightarrow V^*)$. The verifier can make a distribution $S(x)$, and take a sample from there instead, and it would've achieved the same effect as the interaction from their perspective.
+
+If the verifier cannot distinguish real interaction from simulated interaction, then they didn't gain anything useful.
