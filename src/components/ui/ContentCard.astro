@@ -16,9 +16,9 @@ const { href, title, date, authors, summary, tags = [], status, meta } = Astro.p
 const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
 ---
 
-<a href={href} class="card card--link">
+<article class="card card--link">
   <div class="card__header">
-    <span class="heading-card">{title}</span>
+    <a href={href} class="heading-card card__title-link">{title}</a>
     {statusClass && (
       <span class:list={['badge', statusClass]}>{status}</span>
     )}
@@ -34,7 +34,7 @@ const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
   <div class="card__footer">
     <div class="card__tags">
       {tags.slice(0, 4).map(tag => (
-        <span class="tag">{tag}</span>
+        <a href={`/tags/${tag}`} class="tag">{tag}</a>
       ))}
     </div>
     <div class="card__meta">
@@ -42,4 +42,4 @@ const statusClass = status ? (STATUS_CLASS[status] ?? 'badge--draft') : null;
       {date  && <span class="label-meta">{formatDate(date)}</span>}
     </div>
   </div>
-</a>
+</article>

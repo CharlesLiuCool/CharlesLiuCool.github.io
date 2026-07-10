@@ -110,6 +110,30 @@ a.tag:hover {
   color: var(--accent);
 }
 
+/* Tag cloud (tags index page) */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tag--cloud {
+  font-size: var(--text-sm);
+  padding: 0.25rem 0.6rem;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.tag__count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
+.tag--cloud:hover .tag__count {
+  color: var(--accent);
+}
+
 /* ═══════════════════════════════════════════════════════════
    CARDS
 ═══════════════════════════════════════════════════════════ */
@@ -127,6 +151,7 @@ a.tag:hover {
 .card--link {
   display: block;
   cursor: pointer;
+  position: relative;
 }
 
 .card--link:hover {
@@ -136,6 +161,24 @@ a.tag:hover {
 
 .card--link:hover .heading-card {
   color: var(--accent);
+}
+
+/* Stretched-link pattern: the title anchor covers the whole card so the
+   card is clickable, while tag links inside stay independently clickable. */
+.card__title-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.card__footer {
+  position: relative;
+  z-index: 1;
+}
+
+.card__tags .tag {
+  pointer-events: auto;
 }
 
 .card__header {
