@@ -26,7 +26,7 @@ $$
 
 and only Alice, using her private key $sk_{\text{Alice}}$, can recover the plaintext.
 
-While this guarantees confidentiality, access control is coarse-grained: encryption targets an individual rather than a class of users with certain qualifications. If the sender wishes to encrypt data for "all professors in the Computer Science department," they would have to encrypt the same message separately for each professor.
+While this provides confidentiality, it does not support flexible access control. Encryption is tied to individual users rather than groups defined by shared properties. For example, to share data with “all professors in the Computer Science department,” the sender must encrypt the same message separately for each professor.
 
 ---
 
