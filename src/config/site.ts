@@ -19,7 +19,7 @@ export const SITE = {
     `tennis player`,
     `fully-homomorphic encryption`,
   ] as const,
-  description: 'Researcher working on zero-knowledge proofs, cryptographic protocols, and the foundations of theoretical computer science.',
+  description: 'Undergraduate student in computer science and mathematics studying zero-knowledge proofs, cryptographic protocols, and the foundations of theoretical computer science.',
   institution: 'Washington State University',
   email:       'charles.liu@wsu.edu',
   github:      'https://github.com/charlesliucool',
