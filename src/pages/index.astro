@@ -11,12 +11,6 @@ const blog     = await getCollection('blog');
 
 const collections: Record<string, typeof research> = { research, notes, blog };
 
-const stats = [
-  { label: 'papers',  value: research.length, accentVar: 'var(--accent-purple)', href: '/research' },
-  { label: 'notes',   value: notes.length,    accentVar: 'var(--accent-cyan)',   href: '/notes'    },
-  { label: 'posts',   value: blog.length,     accentVar: 'var(--accent-green)',  href: '/blog'     },
-];
-
 // Resolve each homepage section to its items
 const sections = HOME_SECTIONS.map(sec => {
   let items = collections[sec.collection] ?? [];
@@ -36,36 +30,22 @@ const sections = HOME_SECTIONS.map(sec => {
   <div class="page-container animate-fade-up">
 
     <!-- Hero -->
-    <section class="page-section">
-      <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-5);">
-        <span class="status-dot status-dot--green status-dot--pulse"></span>
-        <span class="label-meta">{SITE.status}</span>
-      </div>
+    <section class="page-section hero">
+      <p class="hero-eyebrow">{SITE.role} · {SITE.institution}</p>
 
       <h1 class="hero-title">{SITE.name}</h1>
 
       <p class="hero-body">
-        Researcher working on
-        <span style="color:var(--accent-purple);font-weight:500;">post-quantum cryptography</span>, with emphasis on
-        <span style="color:var(--accent-cyan);font-weight:500;">cryptographic protocols</span> and <span style="color:var(--accent-cyan);font-weight:500;">zero-knowledge proofs</span>. Interested in the foundations of theoretical computer science.
-        Currently at {SITE.institution}.
+        I work on post-quantum cryptography, with emphasis on cryptographic
+        protocols and zero-knowledge proofs, and I'm drawn to the foundations
+        of theoretical computer science.
       </p>
 
-      <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);">
+      <div class="hero-tags">
         {['zero-knowledge', 'interactive proofs', 'sum-check', 'low-degree extensions', 'commitment schemes'].map(t => (
           <span class="tag">{t}</span>
         ))}
       </div>
-    </section>
-
-    <!-- Stats -->
-    <section class="page-section" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);">
-      {stats.map(s => (
-        <a href={s.href} class="stat-card">
-          <div class="stat-card__value" style={`color:${s.accentVar};`}>{s.value}</div>
-          <div class="stat-card__label">{s.label}</div>
-        </a>
-      ))}
     </section>
 
     <!-- Dynamic homepage sections -->

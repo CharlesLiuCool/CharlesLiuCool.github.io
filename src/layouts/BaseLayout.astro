@@ -21,6 +21,18 @@ const fullUrl = Astro.url.href;
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- Theme: apply saved/system preference before paint to avoid flash -->
+    <script is:inline>
+      (function () {
+        try {
+          var saved = localStorage.getItem('theme');
+          document.documentElement.setAttribute('data-theme', saved || 'dark');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+
     <!-- Basic Meta -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

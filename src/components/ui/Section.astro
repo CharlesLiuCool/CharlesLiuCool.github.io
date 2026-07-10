@@ -17,18 +17,10 @@ const {
 <section class="page-section">
   <div class="section-header">
     <div class="section-header__left">
-      <span class="label-section">{title}</span>
+      <h2 class="section-title">{title}</h2>
     </div>
     {href && (
-      <a
-        href={href}
-        class="link-accent"
-        style={`--hover-color: ${accentVar};`}
-        onmouseover={`this.style.color='${accentVar}'`}
-        onmouseout="this.style.color=''"
-      >
-        <span class="label-meta">all →</span>
-      </a>
+      <a href={href} class="section-more">all →</a>
     )}
   </div>
 

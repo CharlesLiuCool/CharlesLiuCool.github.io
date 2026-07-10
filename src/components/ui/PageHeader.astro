@@ -19,12 +19,7 @@ const accentVar = COLLECTION_THEME[
   <div class="page-header__title-row">
     <h1 class="heading-section">{title}</h1>
     {count !== undefined && (
-      <span
-        class="badge"
-        style={`color:${accentVar};background:color-mix(in srgb,${accentVar} 12%,transparent);border-color:color-mix(in srgb,${accentVar} 28%,transparent);`}
-      >
-        {count}
-      </span>
+      <span class="page-header__count">{count}</span>
     )}
   </div>
   {description && (
