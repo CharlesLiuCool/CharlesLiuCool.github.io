@@ -1,0 +1,283 @@
+---
+title: "The Diffie-Hellman Assumption Hierarchy"
+date: "2026-07-09"
+tags:
+  [
+    "cryptography",
+    "public-key-encryption",
+    "diffie-hellman",
+    "discrete-log",
+    "el-gamal",
+  ]
+summary: "The three assumptions (DL, CDH, DDH) that form a hierarchy throughout modern cryptography, and how El-Gamal encryption rests on DDH."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Callout from '../../components/research/Callout.astro';
+
+Three assumptions form a hierarchy that appears throughout modern cryptography, particularly in public key encryption, attribute-based encryption, and beyond.
+
+## Setting up the Problem
+
+Let $G$ be a cyclic group of prime order $p$ with generator $g$.
+
+Choose a secret exponent:
+
+$$
+a \in \mathbb{Z}_p
+$$
+
+Then compute
+
+$$
+g^a.
+$$
+
+Everyone can see $g$ and $g^a$.
+
+<Callout type="question" title="Problem">
+What can they learn about $a$?
+</Callout>
+
+With that information they can crack secret information.
+
+---
+
+## Discrete Logarithm (DL)
+
+<Definition title="Discrete Logarithm Problem">
+Given
+
+$$
+g,\ g^a
+$$
+
+find
+
+$$
+a.
+$$
+</Definition>
+
+The name comes from ordinary logarithms. We have
+
+$$
+g^a = h
+$$
+
+and we want
+
+$$
+a = \log_g(h).
+$$
+
+<Callout type="example" title="Example">
+Suppose someone gives:
+
+$$
+g,\ g^{1234567}
+$$
+
+You want to recover the secret, which is $1234567$. In a sufficiently large group, this is believed to be infeasible.
+</Callout>
+
+<Callout type="note" title="Key Remark">
+Discrete Log asks for the **entire** secret exponent. This is a lot of information — if you can solve DL, you essentially know everything.
+</Callout>
+
+---
+
+## Computational Diffie-Hellman (CDH)
+
+Now introduce a second secret exponent. Choose:
+
+$$
+a, b \in \mathbb{Z}_p.
+$$
+
+Public values:
+
+$$
+g,\ g^a,\ g^b.
+$$
+
+<Callout type="question" title="Problem">
+Solve
+
+$$
+g^{ab}.
+$$
+</Callout>
+
+Alice knows $a$, and Bob knows $b$. They can each compute $g^{ab}$. But an outsider can only see
+
+$$
+g,\ g^a,\ g^b.
+$$
+
+Can that outsider compute the shared secret? CDH says no efficient algorithm can.
+
+<Callout type="example" title="Example">
+Given
+
+$$
+g,\ g^7,\ g^{13}
+$$
+
+compute
+
+$$
+g^{91}.
+$$
+
+You don't need $7$ or $13$, just $g^{91}$.
+</Callout>
+
+If I solve DL, I know $a$ from $g^a$ and $b$ from $g^b$, so of course I can compute CDH. So:
+
+$$
+\text{DL} \implies \text{CDH}.
+$$
+
+---
+
+## Decisional Diffie-Hellman (DDH)
+
+Instead of computing $g^{ab}$, we can make the task even easier. You don't need to know the value — we only ask:
+
+<Callout type="question" title="Problem">
+Can you **recognize** $g^{ab}$?
+</Callout>
+
+Given $(g, g^a, g^b, T)$, determine whether
+
+$$
+T = g^{ab}
+$$
+
+or
+
+$$
+T = g^c
+$$
+
+for some random $c$.
+
+<Callout type="example" title="Example">
+You receive
+
+$$
+(g,\ g^7,\ g^{13},\ T).
+$$
+
+- Output **yes** if $T = g^{91}$
+- Output **no** if $T$ is random
+
+You don't have to compute $g^{91}$.
+</Callout>
+
+Of course, if you can compute $g^{ab}$ (the CDH assumption), then you can distinguish it against other values. Thus,
+
+$$
+\text{CDH} \implies \text{DDH}.
+$$
+
+<Theorem title="The Key Hierarchy">
+$$
+\text{DL} \implies \text{CDH} \implies \text{DDH}.
+$$
+</Theorem>
+
+---
+
+## El-Gamal Encryption: A Real Example of DDH
+
+A classic example is the El-Gamal encryption scheme. Its semantic security (IND-CPA security) is based on the DDH assumption.
+
+### Step 1: Public Key Generation
+
+Alice chooses a secret key
+
+$$
+x
+$$
+
+and computes her public key
+
+$$
+h = g^x.
+$$
+
+Public information: $(g,\ h = g^x)$. Secret: $x$.
+
+### Step 2: Encrypting a Message
+
+Suppose Bob wants to send Alice a message $M$. He builds an obfuscation $K$: he picks a fresh random number $r$, then computes
+
+$$
+c_1 = g^r
+$$
+
+and
+
+$$
+K = h^r = (g^x)^r = g^{xr}.
+$$
+
+He uses $K$ to hide the message. The ciphertext is:
+
+$$
+(c_1,\ M \cdot K).
+$$
+
+### Step 3: Decryption
+
+Alice receives $(c_1, c_2)$. She computes
+
+$$
+(c_1)^x = (g^r)^x = g^{xr} = K.
+$$
+
+Since she now knows $K$, she removes it from the ciphertext and recovers $M$.
+
+---
+
+## Where DDH Comes In
+
+Imagine you're an attacker. You see:
+
+$$
+(g,\ g^x,\ g^r,\ g^{xr}).
+$$
+
+The first two, $g$ and $g^x$, are public. The values $g^r$ and $g^{xr}$ are what Bob sent for the ciphertext $(c_1, c_2)$, which you intercepted. This is exactly the Diffie-Hellman tuple!
+
+The attacker doesn't know whether $g^{xr}$ is the genuine Diffie-Hellman secret or just some random group element. The DDH assumption says you can't distinguish those two cases.
+
+<Callout type="question" title="Question">
+How does that protect the message?
+</Callout>
+
+Suppose we replace the real shared secret $g^{xr}$ with a completely random group element $g^z$. The ciphertext becomes
+
+$$
+(g^r,\ M \cdot g^z).
+$$
+
+Since $g^z$ is random, it acts like a **one-time pad** in the group. The second part of the ciphertext reveals nothing about $M$.
+
+If the attacker could tell the difference between a ciphertext using $g^{xr}$ and some random garbage $g^z$, they would have to be able to distinguish a real Diffie-Hellman tuple from a random one — which breaks DDH. Since they can't tell real from fake encryption, they can't learn anything useful about the data.
+
+---
+
+## Concrete Security Game
+
+<Callout type="example" title="The Guessing Game">
+Suppose Eve intercepted a ciphertext and knows it encrypts one of two messages:
+
+- Transfer $\$10$ (real)
+- Transfer literally any other amount of dollars
+
+Her goal is to guess which one. If El-Gamal is secure, her probability of guessing correctly is essentially as good as flipping a coin — since distinguishing the two ciphertexts would require distinguishing a real DH computation from a random one.
+</Callout>
