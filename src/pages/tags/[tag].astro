@@ -1,0 +1,98 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContentCard from '../../components/ui/ContentCard.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import { getCollection } from 'astro:content';
+import { COLLECTION_THEME } from '../../config/site';
+
+const COLLECTIONS = ['research', 'notes', 'blog', 'projects'] as const;
+type CollectionName = (typeof COLLECTIONS)[number];
+
+export async function getStaticPaths() {
+  const cols = ['research', 'notes', 'blog', 'projects'] as const;
+  const entries = (
+    await Promise.all(
+      cols.map(async (c) =>
+        (await getCollection(c)).map((e) => ({ collection: c, entry: e }))
+      )
+    )
+  ).flat();
+
+  // One page per unique tag.
+  const tags = new Set<string>();
+  for (const { entry } of entries) {
+    for (const t of entry.data.tags ?? []) tags.add(t);
+  }
+
+  return [...tags].map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      items: entries
+        .filter(({ entry }) => (entry.data.tags ?? []).includes(tag))
+        .map(({ collection, entry }) => ({
+          collection,
+          id: entry.id,
+          data: entry.data,
+        }))
+        .sort(
+          (a, b) =>
+            new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+        ),
+    },
+  }));
+}
+
+interface Item {
+  collection: CollectionName;
+  id: string;
+  data: {
+    title: string;
+    date: string;
+    summary?: string;
+    tags?: string[];
+    authors?: string[];
+    status?: string;
+  };
+}
+
+const { tag, items } = Astro.props as { tag: string; items: Item[] };
+---
+<BaseLayout title={`Tag: ${tag}`} description={`Everything tagged “${tag}”.`}>
+  <div class="page-container animate-fade-up">
+    <nav class="breadcrumb">
+      <a href="/tags">tags</a>
+      <span>/</span>
+      <span class="truncate">{tag}</span>
+    </nav>
+
+    <PageHeader
+      title={tag}
+      description="Everything tagged this way, across notes, research, projects, and blog posts."
+      count={items.length}
+      accent="cyan"
+    />
+
+    <div class="stack stack--md">
+      {items.map((item) => (
+        <ContentCard
+          href={`/${item.collection}/${item.id}`}
+          title={item.data.title}
+          date={item.data.date}
+          summary={item.data.summary}
+          authors={item.data.authors}
+          tags={item.data.tags}
+          status={item.data.status}
+          meta={COLLECTION_THEME[item.collection]?.label ?? item.collection}
+        />
+      ))}
+      {items.length === 0 && (
+        <div class="empty-state">Nothing tagged “{tag}” yet.</div>
+      )}
+    </div>
+
+    <footer class="article-footer">
+      <a href="/tags" class="back-link">← all tags</a>
+    </footer>
+  </div>
+</BaseLayout>

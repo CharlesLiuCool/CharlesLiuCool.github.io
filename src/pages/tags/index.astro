@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/ui/PageHeader.astro';
+import { getCollection } from 'astro:content';
+
+const COLLECTIONS = ['research', 'notes', 'blog', 'projects'] as const;
+
+const entries = (
+  await Promise.all(COLLECTIONS.map((c) => getCollection(c)))
+).flat();
+
+// Count how many entries carry each tag.
+const counts = new Map<string, number>();
+for (const entry of entries) {
+  for (const t of entry.data.tags ?? []) {
+    counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+}
+
+const tags = [...counts.entries()].sort((a, b) =>
+  b[1] - a[1] || a[0].localeCompare(b[0])
+);
+---
+<BaseLayout title="Tags" description="Browse all content by topic.">
+  <div class="page-container animate-fade-up">
+    <PageHeader
+      title="Tags"
+      description="Browse notes, research, projects, and writing by topic."
+      count={tags.length}
+      accent="cyan"
+    />
+
+    <div class="tag-cloud">
+      {tags.map(([tag, count]) => (
+        <a href={`/tags/${tag}`} class="tag tag--cloud">
+          {tag}
+          <span class="tag__count">{count}</span>
+        </a>
+      ))}
+      {tags.length === 0 && (
+        <div class="empty-state">No tags yet.</div>
+      )}
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,256 @@
+---
+title: "From PKE to Decentralized Multi-Authority ABE"
+date: "2026-07-09"
+tags:
+  [
+    "cryptography",
+    "attribute-based-encryption",
+    "public-key-encryption",
+    "access-control",
+    "multi-authority",
+  ]
+summary: "How attribute-based encryption generalizes public-key encryption, the CP-ABE vs KP-ABE split, and the road to decentralized multi-authority ABE under static assumptions."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Callout from '../../components/research/Callout.astro';
+
+## PKE to ABE
+
+Traditional public-key encryption (PKE) encrypts data for a *specific recipient*. Every user possesses a public/private key pair $(pk, sk)$. To send a message $M$ to Alice, a sender computes
+
+$$
+C = \text{Enc}(pk_{\text{Alice}}, M)
+$$
+
+and only Alice, using her private key $sk_{\text{Alice}}$, can recover the plaintext.
+
+While this guarantees confidentiality, access control is coarse-grained: encryption targets an individual rather than a class of users with certain qualifications. If the sender wishes to encrypt data for "all professors in the Computer Science department," they would have to encrypt the same message separately for each professor.
+
+---
+
+## Attribute-Based Encryption (ABE)
+
+Attribute-based encryption addresses this limitation by replacing identities with *attributes*.
+
+An attribute is simply a descriptive property associated with a user, for example:
+
+- Professor
+- Student
+- Department = CS
+- Security Clearance = Secret
+- Employee
+
+Instead of encrypting to a single recipient, encryption is performed relative to an *access policy* over attributes.
+
+<Callout type="example" title="Example">
+A ciphertext might specify the policy
+
+$$
+(\text{Professor} \wedge \text{CS}) \vee (\text{Dean})
+$$
+
+meaning that anyone possessing attributes satisfying this Boolean formula can decrypt.
+</Callout>
+
+This shifts access control from **who the user is** to **what properties the user possesses**.
+
+---
+
+## Ciphertext-Policy ABE (CP-ABE)
+
+There are two principal variants of ABE:
+
+<Definition title="Two Variants of ABE">
+- **Key-Policy ABE (KP-ABE)**: ciphertexts carry attribute sets, while user secret keys embed access policies.
+- **Ciphertext-Policy ABE (CP-ABE)**: ciphertexts embed access policies, while user secret keys contain attribute sets.
+</Definition>
+
+In *CP-ABE*, the system proceeds as follows:
+
+1. A trusted authority issues secret keys associated with users' attributes. For example, Alice might receive
+
+$$
+S_{\text{Alice}} = \{\text{Professor}, \text{CS}, \text{Tenured}\}.
+$$
+
+2. A sender encrypts a message under an access policy. For example,
+
+$$
+(\text{Professor} \wedge \text{CS}).
+$$
+
+3. During decryption, the algorithm checks whether the user's attribute set satisfies the access policy.
+
+Since Alice possesses both required attributes, she can decrypt. A user possessing only
+
+$$
+\{\text{Professor}\}
+$$
+
+or
+
+$$
+\{\text{CS}\}
+$$
+
+would not be able to decrypt.
+
+In *KP-ABE*, the user's secret key holds onto policies like $(\text{Professor} \wedge \text{CS})$, and the ciphertext contains attribute sets like $\{\text{Professor}, \text{CS}, \text{Tenured}\}$.
+
+From a general systems perspective, this is the same, since the authority could configure policies in secret keys (which it hands out) to match intended behavior. However, we often opt for CP-ABE, since this allows the encryptor to label their ciphertext with some access policy. It's just a cleaner interface, allowing more expressiveness from their perspective.
+
+<Callout type="note" title="Why CP-ABE Feels Cleaner">
+In KP-ABE a professor could only label his website with $\{\text{Student}, \text{Computer Science}\}$ and hope the system creates proper access policies.
+
+In CP-ABE, he could just configure $\text{Student} \wedge \text{Computer Science}$ and be done.
+</Callout>
+
+---
+
+## The Trusted Authority Assumption
+
+Classical CP-ABE assumes the existence of a *single trusted authority* responsible for the entire system.
+
+This authority performs system setup and issues every user's attribute secret keys. This assumption greatly simplifies the cryptographic construction because one entity possesses the master secret from which attribute keys are derived.
+
+<Callout type="warning" title="Caveat">
+This is unrealistic in many real-world environments.
+</Callout>
+
+### Why a Single Authority is Problematic
+
+In practice, attributes naturally originate from different organizations.
+
+<Callout type="example" title="Example">
+A **university** certifies:
+
+- Professor
+- Student
+- Faculty
+
+An **employer** certifies:
+
+- Employee
+- Manager
+
+The **government** certifies:
+
+- Security Clearance
+</Callout>
+
+No single organization should be responsible for issuing *every attribute*. Moreover, requiring every organization to trust one global authority introduces several issues:
+
+- a single point of failure
+- scalability limitations
+- administrative bottlenecks
+- excessive trust placed in one entity
+- privacy concerns, since one authority learns every user's attributes
+
+Consequently, the single-authority assumption becomes impractical for large distributed systems.
+
+---
+
+## Multi-Authority ABE (MA-ABE)
+
+Multi-Authority Attribute-Based Encryption (MA-ABE) removes this centralized trust assumption by allowing *multiple independent authorities* to issue attributes. Each authority manages only the attributes under its own jurisdiction.
+
+<Callout type="example" title="Example">
+**University Authority**
+
+- Professor
+- Student
+
+**Government Authority**
+
+- Clearance
+
+**Hospital Authority**
+
+- Doctor
+</Callout>
+
+A user independently obtains attribute keys from each relevant authority. Suppose Alice receives
+
+- **Professor** from the university
+- **Security Clearance** from the government
+
+A ciphertext encrypted under the policy
+
+$$
+\text{Professor} \wedge \text{Security Clearance}
+$$
+
+can now be decrypted only if Alice has successfully obtained valid keys from both authorities.
+
+Unlike the single-authority setting, no organization possesses complete control over all attributes or users. Instead, authorities independently generate keys while the cryptographic construction ensures that keys issued by different authorities remain compatible during decryption.
+
+---
+
+## Decentralized MA-ABE
+
+Traditional CP-ABE assumes a *single trusted authority* responsible for generating system parameters and issuing attribute secret keys to all users. While this simplifies the system design, it is often unrealistic in practice, as attributes naturally originate from multiple independent organizations.
+
+For example, in a cloud data-sharing environment, a university may certify whether a user is a *Professor*, a government agency may certify *Security Clearance*, and a hospital may certify *Doctor*. Requiring a single authority to issue all of these attributes introduces a single point of trust and forces unrelated organizations to rely on a centralized entity.
+
+*MA-ABE* addresses this by distributing attribute management across multiple authorities. Each authority independently manages and issues secret keys for the attributes under its own jurisdiction. A user obtains attribute keys from the relevant authorities, and decryption succeeds only if the collection of attributes issued by these independent authorities satisfies the ciphertext's access policy.
+
+<Callout type="idea" title="The Stronger Model">
+An even stronger model is *decentralized MA-ABE*, where there is **no central authority whatsoever**. Each authority independently executes its own setup algorithm, generates its own master secret, and issues attribute keys without communicating with other authorities. The only public information shared among authorities is their public parameters.
+</Callout>
+
+This decentralized model is significantly more challenging than the traditional single-authority setting. Since authorities generate keys independently, the construction must guarantee that:
+
+- independently generated attribute keys remain compatible during decryption,
+- users cannot combine keys from different authorities to obtain unauthorized access (**collusion resistance**),
+- authorities do not need to coordinate during setup or key issuance,
+- security can still be proven in the standard model.
+
+---
+
+## Additional Challenges
+
+Designing a practical decentralized MA-ABE system requires satisfying several orthogonal properties beyond decentralization.
+
+<Definition title="Large Universe Attributes">
+Early ABE schemes required every possible attribute to be specified during system initialization. This is impractical because new attributes may be introduced after deployment.
+
+A *large universe* construction allows arbitrary attribute strings to be used without modifying the public parameters or rerunning setup.
+</Definition>
+
+<Definition title="Unbounded Attribute Support">
+Many constructions impose a predetermined upper bound on the number of attributes, users, or policy size. Such limitations reduce flexibility as the system grows.
+
+An *unbounded MA-ABE* scheme removes these restrictions, allowing new users and attributes to be added indefinitely without requiring system reinitialization.
+</Definition>
+
+<Definition title="Expressive Access Policies">
+Modern ABE schemes typically support access policies represented as Linear Secret Sharing Schemes (LSSS), which efficiently encode arbitrary monotone Boolean formulas using only AND and OR operations.
+
+However, many practical access control policies require *negation*, such as
+
+$$
+\text{Professor} \wedge \neg\text{Suspended}
+$$
+
+or
+
+$$
+\text{Employee} \wedge \neg\text{Contractor}.
+$$
+
+Supporting these non-monotone access structures substantially complicates both the construction and the security proof.
+</Definition>
+
+### Static Security Assumptions
+
+Another important consideration is the underlying cryptographic assumptions.
+
+Many expressive ABE schemes rely on *$q$-type assumptions*, whose strength depends on the size of the access policy or the number of attributes. While these assumptions are widely used, they are generally considered less desirable than *static assumptions*, whose size remains fixed regardless of the system parameters.
+
+<Callout type="note" title="q-type vs. Static">
+$q$-type assumptions require **stronger** assumptions as your ABE grows, whereas static assumptions — like Decisional Diffie-Hellman — don't change even if the number of users or attributes changes.
+</Callout>
+
+Obtaining expressive decentralized MA-ABE under only static assumptions has therefore remained a longstanding goal.
