@@ -1,0 +1,312 @@
+---
+title: "Interactive Proofs and the Sum-Check Protocol"
+date: "2026-07-21"
+tags:
+  [
+    "complexity-theory",
+    "interactive-proofs",
+    "sum-check",
+    "sat",
+  ]
+summary: "Interactive proofs, the sum-check protocol, and why #SAT has an interactive proof — the arithmetization and low-degree-extension machinery that ultimately powers everything from IP = PSPACE to modern succinct arguments."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Lemma from '../../components/research/Lemma.astro';
+import Proof from '../../components/research/Proof.astro';
+import Callout from '../../components/research/Callout.astro';
+
+## The Big Picture
+
+These are my notes from MIT Open-Course Ware class **"Advanced Cryptography"** taught by Yael Tauman Kalai.
+
+1. **Interactive Proofs (IP).** The verifier is efficient (polynomial time), while the prover may be all-powerful. By tradition the prover is called *Merlin* (a wizard, all-powerful) and the verifier is *Arthur* (the king).
+2. **Doubly-Efficient IP (GKR).** A real-world prover is never all-powerful, so we ask the prover to also run efficiently.
+3. **Applications.** Probabilistically-Checkable Proofs (PCP), Multiprover Interactive Proofs (MIP), and the celebrated theorem $\text{IP} = \text{PSPACE}$.
+4. **Cryptography for succinct arguments.** We trade absolute soundness ("if the theorem is false there is *no* proof") for computational soundness ("to prove a false theorem you must break a cryptographic assumption"). This buys us succinctness.
+5. **Fiat–Shamir.** A paradigm for removing interaction, turning a doubly-efficient interactive proof into a non-interactive one and enabling succinct batch arguments.
+6. **Non-interactive GKR / batch arguments**, and finally the **SNARG**.
+
+<Callout type="note" title="Roadmap">
+$$
+\text{IP} \to \text{GKR} \to \text{(PCP, MIP, IP=PSPACE)} \to \text{Succinct Arguments} 
+$$
+$$
+\to \text{Fiat–Shamir} \to \text{SNARG}
+$$
+</Callout>
+
+## Overview
+
+For lecture 1, we discuss:
+
+- Interactive Proofs (IP)
+- The Sum-Check Protocol
+- Applications ($\#\text{SAT} \in \text{IP}$)
+- Doubly-efficient IP
+
+---
+
+## Complexity Classes
+
+<Definition title="NP">
+The set of languages such that membership can be proved to a polynomial-time verifier.
+</Definition>
+
+This is the classical proof model. Interactive proofs generalize it along two axes.
+
+<Definition title="Interactive Proofs (IP)">
+The proof model that additionally allows:
+
+- **interaction** between prover and verifier, and
+- **randomization** by the verifier.
+</Definition>
+
+Because a classical NP proof is just a degenerate interaction, we immediately have
+
+$$
+\text{NP} \subseteq \text{IP}.
+$$
+
+Randomization means there is some (very small) chance the verifier accepts a false statement. Both ingredients matter:
+
+- **No randomization.** If the verifier were deterministic, the prover could generate the entire transcript on its own and hand it over — so we are back to plain NP.
+- **Randomization but no interaction.** A non-interactive proof with a randomized verifier has its own name: **Merlin–Arthur (MA)**.
+
+<Callout type="example" title="An MA problem — verifying a matrix product">
+Let $A, B, C$ be $n \times n$ matrices over a finite field $\mathbb{F}$. We want to verify whether $C = A \cdot B$.
+
+Deterministically, the best known matrix-multiplication algorithms cost about $O(n^{2.37})$. A randomized check does better.
+
+**Randomized algorithm (Freivalds).** Assume without loss of generality $|\mathbb{F}| \gg n$ (we can always enlarge the field via extensions). Pick $r \in \mathbb{F}$ and set
+
+$$
+x = (1, r, r^2, \dots, r^{n-1}).
+$$
+
+Then check
+
+$$
+C x^\top \stackrel{?}{=} A B x^\top.
+$$
+
+**Analysis.** Each side is a matrix–vector product, costing $O(n^2)$ — faster than full multiplication. Each entry of $Cx^\top$ and $ABx^\top$ is a degree-$(n-1)$ polynomial in $r$ whose coefficients come from $C$ and $AB$ respectively. We only accept a false claim when two distinct degree-$(n-1)$ polynomials agree at $r$, which happens at most at $n-1$ points. Hence the failure probability is at most
+
+$$
+\frac{n-1}{|\mathbb{F}|},
+$$
+
+which we drive down by enlarging $\mathbb{F}$.
+</Callout>
+
+<Callout type="note" title="Remark">
+This matrix check is the univariate special case of the **Schwartz–Zippel Lemma**, which generalizes it to the multivariate setting.
+</Callout>
+
+<Definition title="Interactive Proof (formal)">
+An *interactive proof* for a language $L$ is a protocol between an (all-powerful) prover $P$ and an efficient (polynomial-time) verifier $V$, with completeness $C$ and soundness $S$, such that, writing $\text{tr} = \langle P, V(r)\rangle(x)$ for the transcript on input $x$ and randomness $r$:
+
+- **Completeness:** for all $x \in L$,
+$$
+\Pr\big[V(\text{tr}, r, x) = 1\big] \ge C.
+$$
+- **Soundness:** for all $x \notin L$ and all (cheating) provers $P^*$,
+$$
+\Pr\big[V(\text{tr}, r, x) = 1\big] \le S.
+$$
+</Definition>
+
+$C$ and $S$ are parameters. As in BPP one might start with $C = \tfrac{2}{3}$ and $S = \tfrac{1}{3}$; these gaps can be amplified by repeating the protocol.
+
+<Callout type="note" title="History">
+Later we will see $\text{IP} = \text{PSPACE}$, a celebrated result of Shamir (1990). The model was originally introduced to study zero-knowledge, but this interactive, randomized world turned out to prove far more than a polynomial-time verifier was ever believed capable of.
+</Callout>
+
+---
+
+## The Sum-Check Protocol
+
+This is perhaps *the* most important protocol here: an interactive proof for sum-check bootstraps interactive proofs for all of PSPACE.
+
+<Definition title="Sum-Check">
+Given a polynomial
+
+$$
+f : \mathbb{F}^m \to \mathbb{F}
+$$
+
+of degree $d$ in each variable, to which we have oracle access, and a fixed subset $H \subseteq \mathbb{F}$, the prover must convince the verifier that
+
+$$
+\sum_{h_1, \dots, h_m \in H} f(h_1, \dots, h_m) = \beta
+$$
+
+for a claimed value $\beta$.
+</Definition>
+
+<Callout type="note" title="The protocol at a glance">
+The protocol proceeds in $m$ rounds, eliminating one variable per round. In round $i$ the prover sends a univariate polynomial $g_i$ (the sum over the remaining variables with $x_i$ left free); the verifier checks it is consistent with the previous claim, then sends a fresh random challenge $t_i \leftarrow \mathbb{F}$ to fix $x_i$. We start with an $m$-variate claim and end with a single univariate check that the verifier can evaluate against the oracle.
+</Callout>
+
+**Completeness.** An honest prover holding the correct polynomial always passes, so completeness is $1$.
+
+**Soundness.** Consider a cheating prover. Its first message $g_1$ must already be wrong (a correct $g_1$ would require knowing the true polynomial), so we begin in a "false" state. To convince the verifier at the end, at some round the prover must switch onto a genuinely correct polynomial that happens to line up with the induced randomness: at round $i$ the message $g_i$ is bad, but $g_{i+1}$ is good and matches the challenge $t_i \leftarrow \mathbb{F}$.
+
+The event that a single round's cheat survives is
+
+$$
+\sum_{h \in H} g_{i+1}(h) = g_i(t_i),
+$$
+
+i.e. two distinct degree-$d$ polynomials agree at the random point $t_i$, which happens for at most $d$ of the $|\mathbb{F}|$ choices. Union bounding over the $m$ rounds,
+
+$$
+\Pr[P^* \text{ cheats successfully}] \le \frac{md}{|\mathbb{F}|},
+$$
+
+which is amplified away by enlarging the field.
+
+<Callout type="note" title="Why polynomials?">
+Polynomials are special because low-degree extension lets us embed many problems into them, and because of their error-correcting behavior: if a cheating prover is wrong at some point $t_i$, that error is *amplified* — a wrong polynomial disagrees almost everywhere.
+</Callout>
+
+<Definition title="Public-Coin Protocol">
+A protocol in which every verifier message is simply uniformly random bits. Sum-check is public-coin.
+</Definition>
+
+---
+
+## Application: $\#\text{SAT} \in \text{IP}$
+
+We now show that "sharp-SAT" has an interactive proof.
+
+Let $\phi$ be a Boolean formula over $x_1, \dots, x_n$ built from AND, OR, NOT. View it as a binary tree whose leaves are the variables (a variable may appear at several leaves). Then
+
+$$
+(\phi, k) \in \#\text{SAT} \iff \big|\{\, x \in \{0,1\}^n : \phi(x) = 1 \,\}\big| = k,
+$$
+
+i.e. $\phi$ has exactly $k$ satisfying assignments. Let $S$ denote the *size* of $\phi$, its number of leaves.
+
+<Callout type="note" title="Formula vs. circuit">
+A formula is a binary *tree*, whereas a circuit is an arbitrary directed acyclic graph. A formula therefore repeats a lot of computation that a circuit could share. Counting satisfying assignments is a notoriously hard problem.
+</Callout>
+
+**Key idea — arithmetization.** Lift $\phi$ into a polynomial over a finite field $\mathbb{F}$ by replacing each gate:
+
+$$
+\text{AND}(x, y) = x \cdot y,
+$$
+$$
+\text{OR}(x, y) = x + y - x \cdot y,
+$$
+$$
+\text{NOT}(x) = 1 - x.
+$$
+
+Write $\tilde{\phi}$ for the arithmetized polynomial. It then suffices to prove
+
+$$
+\sum_{b_1, \dots, b_n \in \{0,1\}} \tilde{\phi}(b_1, \dots, b_n) = k,
+$$
+
+which is exactly a sum-check instance over $H = \{0,1\}$.
+
+The reason this works: $\tilde{\phi}\big|_{\{0,1\}^n} \equiv \phi$. On Boolean inputs the arithmetized gates behave cleanly and reproduce AND, OR, NOT exactly, so $\tilde\phi$ agrees with $\phi$ on the hypercube. Off the hypercube $\tilde\phi$ may behave wildly, but we never sum there.
+
+<Theorem title="Degree bound of the arithmetization">
+$$
+\sum_{i=1}^{n} \deg_i(\tilde{\phi}) \le S,
+$$
+
+where $\deg_i$ is the degree of variable $x_i$ in $\tilde\phi$.
+</Theorem>
+
+<Proof>
+By induction on the structure of $\phi$.
+
+*Base case.* A single-leaf formula is arithmetized to a degree-$1$ polynomial, and $S = 1$.
+
+*Inductive step.* Suppose $\phi$ is a gate applied to subformulas $\phi_1$ and $\phi_2$, of sizes $S_1$ and $S_2$ with $S = S_1 + S_2$. In either the AND case, $\tilde\phi = \tilde\phi_1 \cdot \tilde\phi_2$, or the OR case, $\tilde\phi = \tilde\phi_1 + \tilde\phi_2 - \tilde\phi_1 \cdot \tilde\phi_2$, the degree in each variable is bounded by the sum of the degrees in the two subformulas. Hence
+
+$$
+\sum_i \deg_i(\tilde\phi) \le \sum_i \deg_i(\tilde\phi_1) + \sum_i \deg_i(\tilde\phi_2) \le S_1 + S_2 = S.
+$$
+</Proof>
+
+Running sum-check on this instance gives a verifier that works in time polynomial in $n$ and $\log|\mathbb{F}|$, with soundness error
+
+$$
+\frac{n \cdot S}{|\mathbb{F}|}.
+$$
+
+---
+
+## Low-Degree Extension
+
+Arithmetization is one instance of a general and fundamental tool.
+
+<Theorem title="Low-Degree Extension">
+Let $f : H^m \to \{0,1\}$ be any function (think of it as an arbitrary array of $|H|^m$ bits laid out on a hypercube), and let $\mathbb{F}$ be any finite field with $H \subseteq \mathbb{F}$. Then there exists a **unique**
+
+$$
+\tilde{f} : \mathbb{F}^m \to \mathbb{F}
+$$
+
+such that $\tilde{f}\big|_{H^m} = f$ and $\tilde{f}$ has degree $\le |H| - 1$ in each variable. Explicitly,
+
+$$
+\tilde{f}(z) = \sum_{h_1, \dots, h_m \in H} f(h_1, \dots, h_m)\, \chi_{h_1, \dots, h_m}(z),
+\qquad
+\chi_{h_1, \dots, h_m}(x_1, \dots, x_m) = \prod_{i=1}^{m} \chi_{h_i}(x_i).
+$$
+
+Here each factor $\chi_{h_i}$ is the univariate **Lagrange basis polynomial** over $H$ that indicates the point $h_i$: for all $h' \in H$,
+
+$$
+\chi_{h_i}(h') = \begin{cases} 1 & h' = h_i \\ 0 & \text{otherwise,} \end{cases}
+\qquad
+\chi_{h_i}(x_i) = \prod_{\substack{h' \in H \\ h' \ne h_i}} \frac{h' - x_i}{h' - h_i}.
+$$
+
+The numerator vanishes whenever $x_i$ hits any point of $H$ other than $h_i$, and the denominator normalizes $\chi_{h_i}(h_i) = 1$; it has degree $|H| - 1$.
+</Theorem>
+
+Specializing to $m = 1$ recovers the familiar interpolation theorem.
+
+<Theorem title="Lagrange Interpolation">
+For $f : H \to \{0,1\}$ there is a unique
+
+$$
+\tilde{f} : \mathbb{F} \to \mathbb{F}
+$$
+
+of degree $|H| - 1$, given by
+
+$$
+\tilde{f}(x) = \sum_{h \in H} f(h) \cdot \chi_h(x),
+$$
+
+where the Lagrange basis polynomial satisfies, for all $h' \in H$,
+
+$$
+\chi_h(h') = \begin{cases} 1 & h' = h \\ 0 & \text{otherwise,} \end{cases}
+\qquad
+\chi_h(x) = \prod_{\substack{h' \in H \\ h' \ne h}} \frac{h' - x}{h' - h}.
+$$
+</Theorem>
+
+<Proof>
+*Agreement on the hypercube.* For any $(h_1^*, \dots, h_m^*) \in H^m$, the product $\chi_{h_1, \dots, h_m}$ is $1$ exactly when $(h_1, \dots, h_m) = (h_1^*, \dots, h_m^*)$ and $0$ otherwise, so
+
+$$
+\tilde{f}(h_1^*, \dots, h_m^*) = \sum_{h_1, \dots, h_m} f(h_1, \dots, h_m)\, \chi_{h_1, \dots, h_m}(h_1^*, \dots, h_m^*) = f(h_1^*, \dots, h_m^*).
+$$
+
+*Degree.* Since $\chi_{h_1, \dots, h_m}$ factors as $\prod_i \chi_{h_i}(x_i)$ and each $\chi_{h_i}$ is univariate of degree $|H| - 1$,
+
+$$
+\deg_i(\tilde{f}) = \deg\big(\chi_{h_i}(x_i)\big) = |H| - 1.
+$$
+</Proof>
