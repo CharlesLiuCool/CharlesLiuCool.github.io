@@ -9,7 +9,7 @@ repo: "https://github.com/CharlesLiuCool/carp-crimsoncode-2026"
 ---
 
 import Callout from '../../components/research/Callout.astro';
-import Mermaid from '../../components/plugins/Mermaid.astro';
+import Flow from '../../components/research/Flow.astro';
 
 > 3rd Place — Advanced Track, CrimsonCode 2026 Hackathon (Washington State University)
 
@@ -37,39 +37,34 @@ Using diabetes risk prediction as a case study, we demonstrate how institutions 
 
 ## System Overview
 
-<Mermaid>
-flowchart TB
-
-    subgraph Hospitals
-        H1[Hospital Client]
-        H2[Hospital Client]
-        H3[Hospital Client]
-    end
-
-    H1 --> DP1[Local Differentially Private Training]
-    H2 --> DP2[Local Differentially Private Training]
-    H3 --> DP3[Local Differentially Private Training]
-
-    DP1 --> W1[Model Weights]
-    DP2 --> W2[Model Weights]
-    DP3 --> W3[Model Weights]
-
-    W1 --> FED[Federated Aggregation]
-    W2 --> FED
-    W3 --> FED
-
-    FED --> SEC[Secure Masking<br/>Shared Randomness]
-
-    SEC --> GLOBAL[Global Diabetes Risk Model]
-
-    GLOBAL --> SHAP[SHAP Explainability]
-    GLOBAL --> LLM[Gemini / Groq Interpretation]
-    GLOBAL --> LOGS[Training Logs & Metrics]
-    GLOBAL --> DB[(PostgreSQL)]
-
-    USERS[Researchers & Hospitals]
-    USERS --> GLOBAL
-</Mermaid>
+<Flow
+  layers={[
+    { group: 'Hospitals', nodes: [
+      { label: 'Hospital Client' },
+      { label: 'Hospital Client' },
+      { label: 'Hospital Client' },
+    ] },
+    { nodes: [
+      { label: 'Local DP Training', subTex: '(\\varepsilon,\\,10^{-5})\\text{-DP}' },
+      { label: 'Local DP Training', subTex: '(\\varepsilon,\\,10^{-5})\\text{-DP}' },
+      { label: 'Local DP Training', subTex: '(\\varepsilon,\\,10^{-5})\\text{-DP}' },
+    ] },
+    { nodes: [
+      { label: 'Model Weights', sub: '.pt' },
+      { label: 'Model Weights', sub: '.pt' },
+      { label: 'Model Weights', sub: '.pt' },
+    ] },
+    { nodes: [ { label: 'Federated Aggregation' } ] },
+    { nodes: [ { label: 'Secure Masking', sub: 'shared randomness' } ] },
+    { nodes: [ { label: 'Global Diabetes Risk Model', sub: 'queried by researchers & hospitals', variant: 'accent' } ] },
+    { nodes: [
+      { label: 'SHAP Explainability' },
+      { label: 'Gemini / Groq Interpretation' },
+      { label: 'Training Logs & Metrics' },
+      { label: 'PostgreSQL', variant: 'store' },
+    ] },
+  ]}
+/>
 
 CARP consists of two major components:
 

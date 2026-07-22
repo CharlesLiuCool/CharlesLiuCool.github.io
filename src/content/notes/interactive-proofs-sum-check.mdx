@@ -16,6 +16,7 @@ import Theorem from '../../components/research/Theorem.astro';
 import Lemma from '../../components/research/Lemma.astro';
 import Proof from '../../components/research/Proof.astro';
 import Callout from '../../components/research/Callout.astro';
+import Protocol from '../../components/research/Protocol.astro';
 
 ## The Big Picture
 
@@ -145,9 +146,29 @@ $$
 for a claimed value $\beta$.
 </Definition>
 
-<Callout type="note" title="The protocol at a glance">
 The protocol proceeds in $m$ rounds, eliminating one variable per round. In round $i$ the prover sends a univariate polynomial $g_i$ (the sum over the remaining variables with $x_i$ left free); the verifier checks it is consistent with the previous claim, then sends a fresh random challenge $t_i \leftarrow \mathbb{F}$ to fix $x_i$. We start with an $m$-variate claim and end with a single univariate check that the verifier can evaluate against the oracle.
-</Callout>
+
+
+<Protocol
+  left="Prover"
+  leftSub="Merlin"
+  right="Verifier"
+  rightSub="Arthur"
+  steps={[
+    { type: 'note', strong: true, tex: '\\text{Claim: } \\sum_{h_1,\\dots,h_m \\in H} f(h_1,\\dots,h_m) = \\beta' },
+    { type: 'msg', dir: 'ltr', tex: 'g_1(X)', subTex: '\\textstyle g_1(X) = \\sum_{h_2,\\dots,h_m \\in H} f(X, h_2, \\dots, h_m)' },
+    { type: 'verifier', title: 'Verifier checks', lines: ['\\deg g_1 \\le d', '\\textstyle\\sum_{h \\in H} g_1(h) = \\beta'] },
+    { type: 'msg', dir: 'rtl', tex: 't_1 \\leftarrow \\mathbb{F}', subText: 'fresh random challenge' },
+    { type: 'msg', dir: 'ltr', tex: 'g_2(X)', subTex: '\\text{now claims } \\textstyle\\sum_{h \\in H} g_2(h) = g_1(t_1)' },
+    { type: 'verifier', title: 'Verifier checks', lines: ['\\deg g_2 \\le d', '\\textstyle\\sum_{h \\in H} g_2(h) = g_1(t_1)'] },
+    { type: 'msg', dir: 'rtl', tex: 't_2 \\leftarrow \\mathbb{F}' },
+    { type: 'note', text: 'rounds 3, …, m − 1 proceed identically' },
+    { type: 'msg', dir: 'ltr', tex: 'g_m(X)', subTex: '\\textstyle\\sum_{h \\in H} g_m(h) = g_{m-1}(t_{m-1})' },
+    { type: 'verifier', title: 'Verifier checks', lines: ['\\deg g_m \\le d', '\\textstyle\\sum_{h \\in H} g_m(h) = g_{m-1}(t_{m-1})'] },
+    { type: 'msg', dir: 'rtl', tex: 't_m \\leftarrow \\mathbb{F}' },
+    { type: 'verifier', title: 'Final check — one oracle query', lines: ['g_m(t_m) = f(t_1, \\dots, t_m)', '\\Rightarrow \\text{ accept}'] },
+  ]}
+/>
 
 **Completeness.** An honest prover holding the correct polynomial always passes, so completeness is $1$.
 
