@@ -1,0 +1,254 @@
+---
+/*
+  Protocol.astro — a two-party interaction diagram (e.g. Prover ↔ Verifier).
+  Renders KaTeX at build time (no client JS) and is theme-aware via design tokens.
+
+  Steps are passed as a `steps` array. Each step is one of:
+    { type: 'msg', dir?: 'ltr' | 'rtl', tex?, text?, subTex?, subText? }
+        a message crossing between the parties (arrow direction = dir).
+    { type: 'prover' | 'verifier', title?, lines?: string[], text? }
+        an internal action/check under one party's lane (lines are KaTeX).
+    { type: 'note', text?, tex? }
+        a full-width interjection (e.g. "repeat for rounds 3..m").
+*/
+import katex from 'katex';
+
+interface Step {
+  type: 'msg' | 'prover' | 'verifier' | 'note';
+  dir?: 'ltr' | 'rtl';
+  tex?: string;
+  text?: string;
+  subTex?: string;
+  subText?: string;
+  title?: string;
+  lines?: string[];
+  strong?: boolean;
+}
+
+interface Props {
+  left?: string;
+  leftSub?: string;
+  right?: string;
+  rightSub?: string;
+  steps: Step[];
+}
+
+const {
+  left = 'Prover',
+  leftSub,
+  right = 'Verifier',
+  rightSub,
+  steps,
+} = Astro.props;
+
+const tex = (s?: string) =>
+  s ? katex.renderToString(s, { throwOnError: false, displayMode: false }) : '';
+---
+
+<div class="protocol not-prose">
+  <div class="protocol__header">
+    <div class="protocol__party">
+      <span class="protocol__party-name">{left}</span>
+      {leftSub && <span class="protocol__party-sub">{leftSub}</span>}
+    </div>
+    <div class="protocol__party protocol__party--right">
+      <span class="protocol__party-name">{right}</span>
+      {rightSub && <span class="protocol__party-sub">{rightSub}</span>}
+    </div>
+  </div>
+
+  <div class="protocol__body">
+    {steps.map((step) => {
+      if (step.type === 'msg') {
+        return (
+          <div class:list={['protocol__msg', `protocol__msg--${step.dir ?? 'ltr'}`]}>
+            <div class="protocol__label">
+              {step.tex && <span set:html={tex(step.tex)} />}
+              {step.text && <span class="protocol__label-text">{step.text}</span>}
+            </div>
+            <div class="protocol__wire" aria-hidden="true"></div>
+            {(step.subTex || step.subText) && (
+              <div class="protocol__sub">
+                {step.subTex && <span set:html={tex(step.subTex)} />}
+                {step.subText && <span class="protocol__label-text">{step.subText}</span>}
+              </div>
+            )}
+          </div>
+        );
+      }
+      if (step.type === 'note') {
+        return (
+          <div class:list={['protocol__note', step.strong && 'protocol__note--strong']}>
+            {step.tex && <span set:html={tex(step.tex)} />}
+            {step.text && <span>{step.text}</span>}
+          </div>
+        );
+      }
+      // prover / verifier action box
+      return (
+        <div class:list={['protocol__action', `protocol__action--${step.type}`]}>
+          <div class="protocol__box">
+            {step.title && <div class="protocol__box-title">{step.title}</div>}
+            {step.lines && step.lines.map((l) => (
+              <div class="protocol__box-line"><span set:html={tex(l)} /></div>
+            ))}
+            {step.text && <div class="protocol__box-line">{step.text}</div>}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+<style>
+  .protocol {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    padding: var(--space-5) var(--space-6) var(--space-6);
+    margin: var(--space-6) 0;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Party headers ─────────────────────────────────── */
+  .protocol__header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .protocol__party {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .protocol__party--right { text-align: right; align-items: flex-end; }
+  .protocol__party-name {
+    font-family: var(--font-heading);
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .protocol__party-sub {
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  /* ── Body ──────────────────────────────────────────── */
+  .protocol__body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .protocol__body > * { position: relative; z-index: 1; }
+
+  /* ── Messages (crossing arrows) ────────────────────── */
+  .protocol__msg { text-align: center; }
+  .protocol__label {
+    display: inline-block;
+    background: var(--bg-card);
+    padding: 0 var(--space-3);
+    font-size: 1.02em;
+    color: var(--text-primary);
+  }
+  .protocol__label-text {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .protocol__wire {
+    position: relative;
+    height: 0;
+    border-top: 1.5px solid var(--accent-line);
+    margin: 6px 6% 0;
+  }
+  /* arrowheads */
+  .protocol__wire::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+  .protocol__msg--ltr .protocol__wire::after {
+    right: -1px;
+    transform: translateY(-50%);
+    border-left: 7px solid var(--accent);
+  }
+  .protocol__msg--rtl .protocol__wire::after {
+    left: -1px;
+    transform: translateY(-50%);
+    border-right: 7px solid var(--hue-info);
+  }
+  .protocol__msg--ltr .protocol__wire { border-color: var(--accent-line); }
+  .protocol__msg--rtl .protocol__wire {
+    border-color: color-mix(in srgb, var(--hue-info) 32%, transparent);
+  }
+  .protocol__sub {
+    margin-top: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+
+  /* ── Internal action / check boxes ─────────────────── */
+  .protocol__action { display: flex; }
+  .protocol__action--prover { justify-content: flex-start; }
+  .protocol__action--verifier { justify-content: flex-end; }
+  .protocol__box {
+    max-width: 78%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3) var(--space-4);
+  }
+  .protocol__action--prover .protocol__box { border-left: 3px solid var(--accent); }
+  .protocol__action--verifier .protocol__box { border-left: 3px solid var(--hue-info); }
+  .protocol__box-title {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+  }
+  .protocol__box-line {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+  .protocol__box-line + .protocol__box-line { margin-top: var(--space-1); }
+
+  /* ── Full-width note ───────────────────────────────── */
+  .protocol__note {
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--text-faint);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  /* Emphasized note — e.g. the claim being proven */
+  .protocol__note--strong {
+    display: block;
+    text-align: center;
+  }
+  .protocol__note--strong > span {
+    display: inline-block;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-line);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-md);
+    color: var(--text-primary);
+    letter-spacing: normal;
+  }
+
+  @media (max-width: 640px) {
+    .protocol__box { max-width: 100%; }
+  }
+</style>
