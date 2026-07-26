@@ -188,6 +188,44 @@ $$
 
 which is amplified away by enlarging the field.
 
+### Protocol Analysis
+
+We now collect the full cost and security profile of the protocol.
+
+<Lemma title="Sum-Check">
+Let $f : \mathbb{F}^m \to \mathbb{F}$ be a polynomial of degree at most $d$ in each variable, and let $T$ be the cost of one evaluation (oracle query) of $f$. The sum-check protocol satisfies:
+
+- **Communication complexity:** $O(md \log |\mathbb{F}|)$
+- **Verifier runtime:** $O(md) + T$
+- **Prover runtime:** $O(m\, |H|^m\, T)$
+- **Completeness:** $1$
+- **Soundness:** $\dfrac{md}{|\mathbb{F}|}$
+</Lemma>
+
+<Proof>
+*Communication complexity.* There are exactly $m$ rounds. In round $i$ the prover sends a univariate polynomial $g_i(X)$ of degree at most $d$, which is determined by its $d + 1$ coefficients. Each coefficient is an element of $\mathbb{F}$, requiring $\log |\mathbb{F}|$ bits, so each round communicates $O(d \log |\mathbb{F}|)$ bits. Across $m$ rounds this is $O(md \log |\mathbb{F}|)$.
+
+*Verifier runtime.* In each round the verifier checks that the received polynomial has degree at most $d$, verifies one linear identity
+$$
+\textstyle\sum_{h \in H} g_i(h) = g_{i-1}(t_{i-1}),
+$$
+and draws one random field element. Each of these costs $O(d)$, for $O(md)$ across all rounds. After the last round the verifier makes one oracle query to evaluate $f(t_1, \dots, t_m)$, costing $T$. In total, $O(md) + T$.
+
+*Prover runtime.* In round $i$ the prover computes
+$$
+g_i(X) = \sum_{h_{i+1}, \dots, h_m \in H} f(t_1, \dots, t_{i-1}, X, h_{i+1}, \dots, h_m),
+$$
+which naively sums over $|H|^{m-i}$ points. Across all rounds,
+$$
+|H|^{m-1} + |H|^{m-2} + \dots + 1 = O(|H|^m),
+$$
+and charging $T$ per evaluation over $m$ rounds gives $O(m\, |H|^m\, T)$.
+
+*Completeness.* If the prover is honest, every polynomial sent is correct and every verifier check succeeds, so the protocol is perfectly complete.
+
+*Soundness.* If the claimed sum is incorrect, the prover's first message is already wrong. To be accepted it must at some round switch onto a correct polynomial that lines up with the induced randomness. Two distinct degree-$d$ univariate polynomials agree on at most $d$ field elements, so, since $t_i \leftarrow \mathbb{F}$ is uniform, a single round's cheat survives with probability at most $d / |\mathbb{F}|$. Union bounding over the $m$ rounds gives soundness error $md / |\mathbb{F}|$.
+</Proof>
+
 <Callout type="note" title="Why polynomials?">
 Polynomials are special because low-degree extension lets us embed many problems into them, and because of their error-correcting behavior: if a cheating prover is wrong at some point $t_i$, that error is *amplified* — a wrong polynomial disagrees almost everywhere.
 </Callout>
@@ -261,73 +299,3 @@ Running sum-check on this instance gives a verifier that works in time polynomia
 $$
 \frac{n \cdot S}{|\mathbb{F}|}.
 $$
-
----
-
-## Low-Degree Extension
-
-Arithmetization is one instance of a general and fundamental tool.
-
-<Theorem title="Low-Degree Extension">
-Let $f : H^m \to \{0,1\}$ be any function (think of it as an arbitrary array of $|H|^m$ bits laid out on a hypercube), and let $\mathbb{F}$ be any finite field with $H \subseteq \mathbb{F}$. Then there exists a **unique**
-
-$$
-\tilde{f} : \mathbb{F}^m \to \mathbb{F}
-$$
-
-such that $\tilde{f}\big|_{H^m} = f$ and $\tilde{f}$ has degree $\le |H| - 1$ in each variable. Explicitly,
-
-$$
-\tilde{f}(z) = \sum_{h_1, \dots, h_m \in H} f(h_1, \dots, h_m)\, \chi_{h_1, \dots, h_m}(z),
-\qquad
-\chi_{h_1, \dots, h_m}(x_1, \dots, x_m) = \prod_{i=1}^{m} \chi_{h_i}(x_i).
-$$
-
-Here each factor $\chi_{h_i}$ is the univariate **Lagrange basis polynomial** over $H$ that indicates the point $h_i$: for all $h' \in H$,
-
-$$
-\chi_{h_i}(h') = \begin{cases} 1 & h' = h_i \\ 0 & \text{otherwise,} \end{cases}
-\qquad
-\chi_{h_i}(x_i) = \prod_{\substack{h' \in H \\ h' \ne h_i}} \frac{h' - x_i}{h' - h_i}.
-$$
-
-The numerator vanishes whenever $x_i$ hits any point of $H$ other than $h_i$, and the denominator normalizes $\chi_{h_i}(h_i) = 1$; it has degree $|H| - 1$.
-</Theorem>
-
-Specializing to $m = 1$ recovers the familiar interpolation theorem.
-
-<Theorem title="Lagrange Interpolation">
-For $f : H \to \{0,1\}$ there is a unique
-
-$$
-\tilde{f} : \mathbb{F} \to \mathbb{F}
-$$
-
-of degree $|H| - 1$, given by
-
-$$
-\tilde{f}(x) = \sum_{h \in H} f(h) \cdot \chi_h(x),
-$$
-
-where the Lagrange basis polynomial satisfies, for all $h' \in H$,
-
-$$
-\chi_h(h') = \begin{cases} 1 & h' = h \\ 0 & \text{otherwise,} \end{cases}
-\qquad
-\chi_h(x) = \prod_{\substack{h' \in H \\ h' \ne h}} \frac{h' - x}{h' - h}.
-$$
-</Theorem>
-
-<Proof>
-*Agreement on the hypercube.* For any $(h_1^*, \dots, h_m^*) \in H^m$, the product $\chi_{h_1, \dots, h_m}$ is $1$ exactly when $(h_1, \dots, h_m) = (h_1^*, \dots, h_m^*)$ and $0$ otherwise, so
-
-$$
-\tilde{f}(h_1^*, \dots, h_m^*) = \sum_{h_1, \dots, h_m} f(h_1, \dots, h_m)\, \chi_{h_1, \dots, h_m}(h_1^*, \dots, h_m^*) = f(h_1^*, \dots, h_m^*).
-$$
-
-*Degree.* Since $\chi_{h_1, \dots, h_m}$ factors as $\prod_i \chi_{h_i}(x_i)$ and each $\chi_{h_i}$ is univariate of degree $|H| - 1$,
-
-$$
-\deg_i(\tilde{f}) = \deg\big(\chi_{h_i}(x_i)\big) = |H| - 1.
-$$
-</Proof>

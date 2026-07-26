@@ -1,0 +1,193 @@
+---
+title: "Low-Degree Extension and Lagrange Interpolation"
+date: "2026-07-23"
+tags:
+  [
+    "complexity-theory",
+    "interactive-proofs",
+    "low-degree-extension",
+    "lagrange-interpolation",
+    "sum-check",
+  ]
+summary: "Lagrange interpolation, its multivariate generalization to the low-degree extension, and how the LDE turns a counting problem — triangles in a graph — into a sum-check instance."
+---
+
+import Theorem from '../../components/research/Theorem.astro';
+import Proof from '../../components/research/Proof.astro';
+import Callout from '../../components/research/Callout.astro';
+
+## Lagrange Interpolation
+
+We start in one variable, with the classical interpolation theorem.
+
+<Theorem title="Lagrange Interpolation">
+Let $H \subseteq \mathbb{F}$ be a finite subset of a field $\mathbb{F}$, and let
+
+$$
+f : H \to \mathbb{F}.
+$$
+
+Then there exists a unique polynomial $\tilde{f} \in \mathbb{F}[x]$ of degree at most $|H| - 1$ such that
+
+$$
+\tilde{f}(h) = f(h) \quad \forall\, h \in H.
+$$
+
+Moreover,
+
+$$
+\tilde{f}(x) = \sum_{h \in H} f(h)\, \chi_h(x),
+\qquad
+\chi_h(x) = \prod_{\substack{a \in H \\ a \ne h}} \frac{x - a}{h - a}.
+$$
+
+These basis polynomials satisfy
+
+$$
+\chi_h(x) = \begin{cases} 1 & x = h \\ 0 & x \in H,\ x \ne h. \end{cases}
+$$
+</Theorem>
+
+<Callout type="tip" title="Key idea">
+The polynomials $\chi_h(x)$ act like indicator functions for points in $H$: each one evaluates to $1$ at exactly one point of $H$ and $0$ everywhere else on $H$. This lets us reconstruct the unique polynomial agreeing with $f$ on $H$ as a linear combination of these basis polynomials.
+</Callout>
+
+## Low-Degree Extension
+
+The **low-degree extension (LDE)** generalizes Lagrange interpolation from one variable to many. Instead of interpolating a function defined on a finite subset $H$, we interpolate a function defined on the finite grid $H^m$ by taking products of the one-dimensional Lagrange basis polynomials.
+
+<Theorem title="Low-Degree Extension">
+Let $f : H^m \to \mathbb{F}$ be any function (think of it as an arbitrary sequence of $|H|^m$ values arranged on an $m$-dimensional grid). Let $\mathbb{F}$ be any finite field with $H \subseteq \mathbb{F}$.
+
+Then there exists a **unique** polynomial
+
+$$
+\tilde{f} : \mathbb{F}^m \to \mathbb{F}
+$$
+
+such that $\tilde{f}\big|_{H^m} = f$ and $\tilde{f}$ has degree at most $|H| - 1$ in each variable.
+</Theorem>
+
+<Callout type="tip" title="Key idea">
+Any arbitrary function on a finite grid is the restriction of a low-degree polynomial. An unstructured lookup table can be replaced by an algebraic object — a low-degree polynomial — letting us bring algebraic techniques to bear on the function.
+</Callout>
+
+The extension is given explicitly by
+
+$$
+\tilde{f}(x_1, \ldots, x_m)
+=
+\sum_{(h_1, \ldots, h_m) \in H^m}
+f(h_1, \ldots, h_m)\,
+\chi_{h_1, \ldots, h_m}(x_1, \ldots, x_m),
+$$
+
+where
+
+$$
+\chi_{h_1, \ldots, h_m}(x_1, \ldots, x_m)
+=
+\prod_{i=1}^{m} \chi_{h_i}(x_i),
+\qquad
+\chi_h(x) = \prod_{\substack{a \in H \\ a \ne h}} \frac{x - a}{h - a}.
+$$
+
+Thus the low-degree extension is obtained by applying Lagrange interpolation independently in each coordinate.
+
+<Callout type="note" title="Why a field?">
+The interpolation formula has terms like $\frac{1}{h - a}$, so we need every nonzero $h - a$ to be invertible. Over a ring like $\mathbb{Z}/6\mathbb{Z}$ some nonzero elements have no inverse and interpolation can fail — hence the field hypothesis. We only use the finite-field version here since it is what interactive proofs need, but the theorem holds more generally.
+</Callout>
+
+<Proof>
+*Agreement on the grid.* For every $(h_1^*, \ldots, h_m^*) \in H^m$,
+
+$$
+\tilde{f}(h_1^*, \ldots, h_m^*)
+=
+\sum_{(h_1, \ldots, h_m) \in H^m}
+f(h_1, \ldots, h_m)\,
+\chi_{h_1, \ldots, h_m}(h_1^*, \ldots, h_m^*)
+=
+f(h_1^*, \ldots, h_m^*),
+$$
+
+since
+
+$$
+\chi_{h_1, \ldots, h_m}(h_1^*, \ldots, h_m^*)
+=
+\prod_{i=1}^{m} \chi_{h_i}(h_i^*)
+=
+\begin{cases}
+1, & (h_1, \ldots, h_m) = (h_1^*, \ldots, h_m^*), \\
+0, & \text{otherwise}.
+\end{cases}
+$$
+
+*Degree.* Since $\chi_{h_1, \ldots, h_m}$ factors as $\prod_i \chi_{h_i}(x_i)$ and each $\chi_{h_i}$ is univariate of degree $|H| - 1$, every term of the sum has degree at most $|H| - 1$ in $x_i$, and hence so does $\tilde{f}$:
+
+$$
+\deg_i(\tilde{f}) \le \deg\big(\chi_{h_i}(x_i)\big) = |H| - 1.
+$$
+
+*Uniqueness.* Suppose, for contradiction, there is a nonzero polynomial $g : \mathbb{F}^m \to \mathbb{F}$ with
+
+- $g\big|_{H^m} \equiv 0$, and
+- $\deg_i(g) \le |H| - 1$ for each $i$.
+
+Since $g$ is nonzero, there exists $(t_1, \ldots, t_m) \in \mathbb{F}^m$ with $g(t_1, \ldots, t_m) \ne 0$. Consider the univariate polynomial $g(\,\cdot\,, t_2, \ldots, t_m)$. It is nonzero and has degree at most $|H| - 1$, so by uniqueness of Lagrange interpolation (equivalently, a nonzero degree-$(|H|-1)$ polynomial cannot vanish on all $|H|$ points of $H$) there exists $h_1 \in H$ with
+
+$$
+g(h_1, t_2, \ldots, t_m) \ne 0.
+$$
+
+Repeating this argument coordinate by coordinate, we obtain $(h_1, \ldots, h_m) \in H^m$ with $g(h_1, \ldots, h_m) \ne 0$, contradicting $g\big|_{H^m} \equiv 0$. Hence the low-degree extension is unique.
+</Proof>
+
+---
+
+## Application: Counting Triangles in a Graph
+
+Given a graph $G = (V, E)$ with $|V| = n$:
+
+<Callout type="question" title="Problem">
+Prove that the number of triangles in $G$ is exactly $\beta$.
+</Callout>
+
+Deterministically, we could check all triples of vertices, costing $O(n^3)$. Can we do better?
+
+Build a map from pairs of vertices to an indicator of whether an edge exists. Encode each vertex of $G$ as a binary string of length $\log n$ (or $\lceil \log n \rceil$ if $n$ is not a power of two), so an ordered pair of vertices is a binary string of length $2 \log n$:
+
+$$
+f : \{0,1\}^{2 \log n} \to \{0,1\},
+\qquad
+f(i, j) = \begin{cases} 1 & (i, j) \in E \\ 0 & \text{otherwise.} \end{cases}
+$$
+
+We then formalize triangle counting as the identity we hope to prove:
+
+$$
+\frac{1}{6} \sum_{i, j, k \in \{0,1\}^{\log n}} f(i, j)\cdot f(j, k)\cdot f(i, k) = \beta.
+$$
+
+If any of the three connections fails, the triple is not a triangle and contributes nothing, since the corresponding factor (e.g. $f(i, j)$) is $0$. We divide by $6$ because each triangle is counted once for each of the $3! = 6$ orderings of its vertices $i, j, k$.
+
+<Callout type="tip" title="Key realization">
+This has exactly the shape of a sum-check! The only obstruction: $f$ is a function, not a polynomial. But we have precisely the tool to fix that.
+</Callout>
+
+Take the low-degree extension of $f$,
+
+$$
+\tilde{f} : \mathbb{F}^{2 \log n} \to \mathbb{F},
+$$
+
+which is **multilinear** (we interpolate over $H = \{0,1\}$, of size $2$, so the degree in each variable is at most $1$). This turns the identity into a genuine sum-check instance:
+
+$$
+\frac{1}{6} \sum_{i, j, k \in \{0,1\}^{\log n}} \tilde{f}(i, j)\cdot \tilde{f}(j, k)\cdot \tilde{f}(i, k) = \beta.
+$$
+
+<Callout type="note" title="Remark">
+The low-degree extension turns many counting problems into sum-check instances, giving doubly-efficient interactive proofs. Can we push this further?
+</Callout>
