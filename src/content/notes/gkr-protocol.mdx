@@ -27,7 +27,7 @@ This note builds the **GKR protocol** in three passes:
 - a **barebones protocol** — arithmetize the circuit and express the layer-to-layer reduction as a sum-check;
 - the **missing pieces** — collapsing two evaluations into one, and letting the verifier compute the wiring predicates.
 
-It continues directly from the [[interactive-proofs-sum-check]] and [[low-degree-extension]] notes; the sum-check protocol and the low-degree extension are the two tools everything below is built from.
+It continues directly from the [Interactive Proofs and the Sum-Check Protocol](/notes/interactive-proofs-sum-check) and [Low-Degree Extension](/notes/low-degree-extension) notes; the sum-check protocol and the low-degree extension are the two tools everything below is built from.
 
 ---
 
@@ -223,7 +223,7 @@ Two problems remain in the barebones sketch.
 (1) Each layer's reduction leaves the verifier holding *two* evaluations of $\widetilde{V}_{i+1}$. (2) How does the verifier compute $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$?
 </Callout>
 
-For now assume the verifier can evaluate $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$ efficiently; we remove this assumption in the [final section](#computing-the-wiring-predicates).
+For now assume the verifier can evaluate $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$ efficiently; we remove this assumption in the final section, **Computing the Wiring Predicates**.
 
 ### Two sum-checks per layer
 
@@ -325,14 +325,12 @@ and accepts iff this matches the prover's claimed $v_d$.
 
 ## Analysis
 
-Take $|\mathbb{F}| = \mathrm{poly}(S)$.
+Take $|\mathbb{F}| = \mathrm{poly}(S)$. The protocol then costs
 
-| Quantity | Bound |
-| --- | --- |
-| Communication | $d \cdot \mathrm{polylog}(S)$ |
-| Verifier runtime | $d \cdot \mathrm{polylog}(S)$ |
-| Prover runtime | $\mathrm{poly}(S)$ |
-| Soundness error | $O\!\left(\dfrac{d \log^2 S}{|\mathbb{F}|}\right)$ |
+- **Communication:** $d \cdot \mathrm{polylog}(S)$
+- **Verifier runtime:** $d \cdot \mathrm{polylog}(S)$
+- **Prover runtime:** $\mathrm{poly}(S)$
+- **Soundness error:** $O\!\left(\dfrac{d \log^2 S}{|\mathbb{F}|}\right)$
 
 ### Soundness
 
@@ -420,5 +418,5 @@ $$
 so running GKR on $U$ instead of $C$ preserves the protocol's asymptotic efficiency while making the wiring predicates efficiently computable — closing the last gap.
 
 <Callout type="note" title="Where this goes next">
-GKR gives a doubly-efficient interactive proof for low-depth circuits. Removing interaction via **Fiat–Shamir** turns it non-interactive, the path toward succinct arguments and the **SNARG** (see the roadmap in [[interactive-proofs-sum-check]]).
+GKR gives a doubly-efficient interactive proof for low-depth circuits. Removing interaction via **Fiat–Shamir** turns it non-interactive, the path toward succinct arguments and the **SNARG** (see the roadmap in [Interactive Proofs and the Sum-Check Protocol](/notes/interactive-proofs-sum-check)).
 </Callout>
