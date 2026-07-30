@@ -1,0 +1,424 @@
+---
+title: "The GKR Protocol"
+date: "2026-07-25"
+tags:
+  [
+    "complexity-theory",
+    "interactive-proofs",
+    "gkr",
+    "doubly-efficient",
+    "sum-check",
+    "low-degree-extension",
+  ]
+summary: "A doubly-efficient interactive proof for low-depth circuits. Arithmetize the circuit layer by layer, reduce each layer's claim to the next with a sum-check, collapse the two resulting evaluations with a line, and use logspace uniformity to compute the wiring predicates — all in polylog verifier time."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Proof from '../../components/research/Proof.astro';
+import Callout from '../../components/research/Callout.astro';
+import Flow from '../../components/research/Flow.astro';
+
+## Overview
+
+This note builds the **GKR protocol** in three passes:
+
+- the **high-level idea** — reduce a claim about one circuit layer to a claim about the next;
+- a **barebones protocol** — arithmetize the circuit and express the layer-to-layer reduction as a sum-check;
+- the **missing pieces** — collapsing two evaluations into one, and letting the verifier compute the wiring predicates.
+
+It continues directly from the [[interactive-proofs-sum-check]] and [[low-degree-extension]] notes; the sum-check protocol and the low-degree extension are the two tools everything below is built from.
+
+---
+
+## Setup
+
+<Callout type="tip" title="Key idea">
+We can build a doubly-efficient interactive proof for all low-depth circuits using the **GKR protocol**.
+</Callout>
+
+Given a circuit $C$ of size $S$ (the total number of gates) and depth $d$, the goal is to *prove $C(x) = 1$*.
+
+Immediately this looks strange. The verifier should be very efficient, but reading the description of an arbitrary circuit already costs $\Omega(S)$ — which defeats the purpose of a doubly-efficient interactive proof. So we assume the circuit has a **succinct representation**.
+
+<Definition title="Logspace uniform">
+A circuit family is *logspace uniform* if there is a Turing machine using only $O(\log S)$ space that generates the circuit description.
+</Definition>
+
+Intuitively, there is a compact algorithm that describes the circuit using only logarithmic space — the wiring is *computed*, not stored as an arbitrary graph. We return to why this matters once we need the verifier to understand the circuit's structure.
+
+---
+
+## The Naive Approach (and why it fails)
+
+Suppose the prover lies about the value of the output gate. At every incorrect gate, at least one child must also be incorrect — but the verifier does not know *which* child is wrong.
+
+So the verifier flips a fair coin and follows one child:
+
+- if it follows the dishonest child, the inconsistency survives to the next layer;
+- if it follows the honest child, the prover's answers are now perfectly consistent below, and the verifier has lost the lie.
+
+After descending all $d$ layers, the probability of still holding onto the inconsistency is
+
+$$
+\Pr[\text{catch prover}] = \frac{1}{2^{\,d}},
+$$
+
+which is exponentially small. Following a single computation path is hopeless — we need to check *whole layers at once*.
+
+---
+
+## High-Level Idea of GKR
+
+Instead of checking gates one at a time, we check the value of the **low-degree extension of an entire layer at a random point**.
+
+Let $\widetilde{V}_i$ be the low-degree extension of the vector of values in layer $i$. The verifier starts from the output claim
+
+$$
+\widetilde{V}_0(z_0) = v_0,
+\qquad z_0 \in \mathbb{F}^m,
+$$
+
+where $z_0$ is a random point drawn from a large field $\mathbb{F}$. Because $\widetilde{V}_0$ is a polynomial encoding of the whole layer, its value at a single random point is a compact *fingerprint* of every gate in that layer.
+
+The protocol then **reduces a claim about layer $i$ to a claim about layer $i+1$**. The key observation is that this move is exactly a **sum-check**: running it on
+
+$$
+\widetilde{V}_i(z_i) = v_i
+$$
+
+yields a fresh random point $z_{i+1} \in \mathbb{F}^m$ and a new claim $\widetilde{V}_{i+1}(z_{i+1}) = v_{i+1}$. Iterating produces a sequence of challenges
+
+$$
+z_0, z_1, \ldots, z_d \in \mathbb{F}^m,
+$$
+
+each generated during the sum-check for its layer. At the end the verifier is left with a claim about the *input* layer — which it can check directly, since it knows the input values.
+
+<Flow
+  layers={[
+    { nodes: [{ label: 'Output claim', subTex: '\\widetilde{V}_0(z_0) = v_0', variant: 'accent' }] },
+    { group: 'sum-check + line reduction', nodes: [{ label: 'Layer 1 claim', subTex: '\\widetilde{V}_1(z_1) = v_1' }] },
+    { nodes: [{ label: 'Layer 2 claim', subTex: '\\widetilde{V}_2(z_2) = v_2' }] },
+    { nodes: [{ label: '⋯', subTex: '\\;', variant: 'muted' }] },
+    { nodes: [{ label: 'Input claim', subTex: '\\widetilde{V}_d(z_d) = v_d', variant: 'accent' }] },
+    { nodes: [{ label: 'Verifier checks directly', sub: 'inputs are known', variant: 'store' }] },
+  ]}
+/>
+
+<Callout type="tip" title="Key idea">
+Instead of randomly following one computation path through the circuit, the verifier randomly evaluates the low-degree encoding of an entire layer. By the **Schwartz–Zippel lemma**, a dishonest prover cannot consistently fake a low-degree polynomial — giving exponentially stronger soundness than the naive protocol.
+</Callout>
+
+---
+
+## The Barebones Protocol
+
+### Step 1 — Arithmetize the circuit
+
+Choose a sufficiently large finite field $\mathbb{F}$ containing $\{0,1\}$, and replace every Boolean gate with its arithmetic equivalent over $\mathbb{F}$, so every gate is now an **addition** or a **multiplication** gate. The prover evaluates the circuit, so every gate stores a value in $\mathbb{F}$.
+
+Assume every layer has exactly $S$ gates (pad with dummy gates if necessary) and label each gate in layer $i$ by a binary string of length
+
+$$
+m = \lceil \log_2 S \rceil.
+$$
+
+This defines the **layer-value function**
+
+$$
+V_i : \{0,1\}^m \to \mathbb{F},
+$$
+
+where $V_i(b)$ is the value at the gate labeled $b$. Its low-degree extension is
+
+$$
+\widetilde{V}_i : \mathbb{F}^m \to \mathbb{F}.
+$$
+
+At the output layer the prover claims $\widetilde{V}_0(z_0) = v_0$ for the verifier's challenge $z_0 \in \mathbb{F}^m$. By the definition of the low-degree extension,
+
+$$
+\widetilde{V}_i(z_i) = \sum_{p \in \{0,1\}^m} V_i(p)\, \chi(p, z_i).
+$$
+
+<Callout type="note" title="Deriving the indicator χ for H = {0,1}">
+For $H = \{0,1\}$ the one-dimensional Lagrange basis polynomials are
+
+$$
+\chi_0(x) = \frac{x-1}{0-1} = 1 - x,
+\qquad
+\chi_1(x) = \frac{x-0}{1-0} = x,
+$$
+
+and indeed $\chi_0(0) = 1,\ \chi_0(1) = 0$ while $\chi_1(1) = 1,\ \chi_1(0) = 0$. A single coordinate is $1 - x_i$ when the bit is $0$ and $x_i$ when the bit is $1$, which we write compactly as
+
+$$
+(1 - p_i)(1 - z_i) + p_i z_i =
+\begin{cases}
+1 - z_i, & p_i = 0, \\
+z_i, & p_i = 1.
+\end{cases}
+$$
+
+Taking the tensor product over all $m$ coordinates gives the multilinear indicator
+
+$$
+\chi(p, z) = \prod_{i=1}^{m} \big( (1 - p_i)(1 - z_i) + p_i z_i \big).
+$$
+</Callout>
+
+### Step 2 — Gate indicator (wiring) predicates
+
+To describe the wiring, define two Boolean indicators on triples of gate labels $(p, w_1, w_2)$, where $p$ is a gate in layer $i$ and $w_1, w_2$ are its two children in layer $i+1$:
+
+$$
+\mathrm{add}_i(p, w_1, w_2) =
+\begin{cases}
+1, & \text{gate } p = w_1 + w_2, \\
+0, & \text{otherwise,}
+\end{cases}
+\qquad
+\mathrm{mult}_i(p, w_1, w_2) =
+\begin{cases}
+1, & \text{gate } p = w_1 \cdot w_2, \\
+0, & \text{otherwise.}
+\end{cases}
+$$
+
+Both have signature $\{0,1\}^{3m} \to \{0,1\}$.
+
+### Step 3 — Rewrite the layer claim
+
+Substituting the gate computation into the low-degree extension expresses $v_i$ purely in terms of layer $i+1$:
+
+$$
+\begin{aligned}
+v_i
+= \sum_{p, w_1, w_2 \in \{0,1\}^m}
+\Big[\ &\widetilde{\mathrm{add}}_i(p, w_1, w_2)\big( \widetilde{V}_{i+1}(w_1) + \widetilde{V}_{i+1}(w_2) \big) \\
++\ &\widetilde{\mathrm{mult}}_i(p, w_1, w_2)\, \widetilde{V}_{i+1}(w_1)\, \widetilde{V}_{i+1}(w_2) \Big]\, \chi(p, z_i).
+\end{aligned}
+$$
+
+This is exactly the reduction we wanted: a claim about layer $i$ is now a sum over layer $i+1$.
+
+### Step 4 — Why is the summand low-degree?
+
+<Callout type="question" title="Question">
+Why can we apply the sum-check protocol here?
+</Callout>
+
+Replace every Boolean function by its **multilinear extension**: $\widetilde{V}_i$, $\widetilde{\mathrm{add}}_i$, $\widetilde{\mathrm{mult}}_i$, and (abusing notation) $\chi(p, z)$ itself, now a polynomial in both $p$ and $z$ that agrees with the Boolean indicator whenever $p, z \in \{0,1\}^m$.
+
+Since the challenge $z_i$ is fixed throughout, $\chi(p, z_i)$ is multilinear in $p$ — degree at most $1$ in each coordinate (recall $|\{0,1\}| = 2$). Every factor inside the sum is therefore multilinear, and multiplying a *constant* number of multilinear polynomials raises the degree by only a constant. So the entire summand is a **low-degree polynomial** — precisely the setting the sum-check protocol requires.
+
+---
+
+## What We're Missing, and the Key Trick
+
+Two problems remain in the barebones sketch.
+
+<Callout type="question" title="Question">
+(1) Each layer's reduction leaves the verifier holding *two* evaluations of $\widetilde{V}_{i+1}$. (2) How does the verifier compute $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$?
+</Callout>
+
+For now assume the verifier can evaluate $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$ efficiently; we remove this assumption in the [final section](#computing-the-wiring-predicates).
+
+### Two sum-checks per layer
+
+Split the layer claim $\widetilde{V}_i(z_i) = v_i$ into its additive and multiplicative pieces, $v_i = A_i + M_i$, where
+
+$$
+A_i = \sum_{p, w_1, w_2} \widetilde{\mathrm{add}}_i(p, w_1, w_2)\big( \widetilde{V}_{i+1}(w_1) + \widetilde{V}_{i+1}(w_2) \big)\chi(p, z_i),
+$$
+
+$$
+M_i = \sum_{p, w_1, w_2} \widetilde{\mathrm{mult}}_i(p, w_1, w_2)\, \widetilde{V}_{i+1}(w_1)\, \widetilde{V}_{i+1}(w_2)\,\chi(p, z_i).
+$$
+
+GKR runs **two sum-checks in parallel** — one for $A_i$, one for $M_i$ — reusing the *same* verifier randomness in every round, so both terminate at the same random point $(r_p, r_1, r_2)$. Consequently both reduce to the same two evaluations,
+
+$$
+\widetilde{V}_{i+1}(r_1)
+\quad\text{and}\quad
+\widetilde{V}_{i+1}(r_2).
+$$
+
+### The problem: claims branch
+
+The verifier now holds two claims,
+
+$$
+\widetilde{V}_{i+1}(r_1) = v_{i+1,1},
+\qquad
+\widetilde{V}_{i+1}(r_2) = v_{i+1,2}.
+$$
+
+Verifying both recursively would double the number of claims at every layer — $1 \to 2 \to 4 \to 8 \to \cdots$ — an exponential blowup. We must collapse the two evaluations back into **one**.
+
+### The trick: restrict to the line through $r_1$ and $r_2$
+
+Define the affine line through the two points,
+
+$$
+\ell(t) = r_2 + t\,(r_1 - r_2),
+\qquad
+\ell(0) = r_2,\quad \ell(1) = r_1,
+$$
+
+and restrict the multilinear extension to it:
+
+$$
+q(t) = \widetilde{V}_{i+1}(\ell(t)).
+$$
+
+Since $\widetilde{V}_{i+1}$ is multilinear and $\ell$ is degree $1$, $q$ is a univariate polynomial of degree at most $m$ — low degree, so the verifier can handle it. The verifier asks the prover for $q$ and checks that it is consistent with the two claims it already holds:
+
+$$
+q(0) \stackrel{?}{=} \widetilde{V}_{i+1}(r_2),
+\qquad
+q(1) \stackrel{?}{=} \widetilde{V}_{i+1}(r_1).
+$$
+
+It then samples a fresh challenge $\tau \in \mathbb{F}$, sets $z_{i+1} = \ell(\tau)$, and carries forward the **single** new claim
+
+$$
+\boxed{\;\widetilde{V}_{i+1}(z_{i+1}) = q(\tau) =: v_{i+1}.\;}
+$$
+
+Two evaluations of $\widetilde{V}_{i+1}$ have been compressed into one random evaluation, and soundness is preserved by Schwartz–Zippel: if the prover's $q$ disagrees with the true restriction, they differ at all but $\le m$ points, so a random $\tau$ exposes the lie with high probability.
+
+<Callout type="note" title="Alternative: random linear combination">
+Instead of the line, the verifier can sample $\alpha \in \mathbb{F}$ and fold the two claims into one target $v_{i+1} = \alpha\,v_{i+1,1} + v_{i+1,2}$, then run the next layer's sum-check against $\alpha\,\widetilde{V}_{i+1}(r_1) + \widetilde{V}_{i+1}(r_2)$. Both approaches collapse two claims into one while preserving soundness; the line reduction is the one used in the original GKR protocol.
+</Callout>
+
+### Putting one layer together
+
+For every layer:
+
+1. Start with one claim $\widetilde{V}_i(z_i) = v_i$.
+2. Run the addition and multiplication sum-checks in parallel with shared randomness.
+3. Obtain the two evaluations $\widetilde{V}_{i+1}(r_1)$ and $\widetilde{V}_{i+1}(r_2)$.
+4. Restrict $\widetilde{V}_{i+1}$ to the line through $r_1$ and $r_2$.
+5. Sample a fresh point on that line to get one new claim $\widetilde{V}_{i+1}(z_{i+1}) = v_{i+1}$.
+
+Repeat down to the input layer.
+
+### The final check
+
+After the last layer the verifier holds $\widetilde{V}_d(z_d) = v_d$. Unlike every layer above, it already knows every input wire, hence the function
+
+$$
+V_d : \{0,1\}^m \to \mathbb{F}
+$$
+
+that maps each labeled input to its value. It computes the extension itself,
+
+$$
+\widetilde{V}_d(z_d) = \sum_{p \in \{0,1\}^m} V_d(p)\,\chi(p, z_d),
+$$
+
+and accepts iff this matches the prover's claimed $v_d$.
+
+---
+
+## Analysis
+
+Take $|\mathbb{F}| = \mathrm{poly}(S)$.
+
+| Quantity | Bound |
+| --- | --- |
+| Communication | $d \cdot \mathrm{polylog}(S)$ |
+| Verifier runtime | $d \cdot \mathrm{polylog}(S)$ |
+| Prover runtime | $\mathrm{poly}(S)$ |
+| Soundness error | $O\!\left(\dfrac{d \log^2 S}{|\mathbb{F}|}\right)$ |
+
+### Soundness
+
+Suppose the prover cheats — the final output claim is false but the input claim it lands on is true. Somewhere on the way down there must be a **first layer where a false claim turns into a true one**. Let $B_i$ be that event at layer $i$: the claim(s) at layer $i+1$ are false, while the claims at layer $i$ came out true. Writing the two per-layer evaluations as $\widetilde{V}_i(z_{i,1}) = v_{i,1}$ and $\widetilde{V}_i(z_{i,2}) = v_{i,2}$,
+
+$$
+B_i:\quad
+\big(\widetilde{V}_{i+1}(z_{i+1,1}) \ne v_{i+1,1} \ \text{ or }\ \widetilde{V}_{i+1}(z_{i+1,2}) \ne v_{i+1,2}\big)
+\ \wedge\
+\big(\widetilde{V}_i(z_{i,1}) = v_{i,1} \ \wedge\ \widetilde{V}_i(z_{i,2}) = v_{i,2}\big).
+$$
+
+By a union bound the total cheating probability is
+
+$$
+\epsilon = \Pr[B_1 \vee \cdots \vee B_d] \le \sum_{i \in [d]} \Pr[B_i].
+$$
+
+Partition each $B_i$ by which of the two child claims was false:
+
+- $B_{i,1}$: $\widetilde{V}_{i+1}(z_{i+1,1}) \ne v_{i+1,1}$, but layer $i$ became true;
+- $B_{i,2}$: $\widetilde{V}_{i+1}(z_{i+1,2}) \ne v_{i+1,2}$, but layer $i$ became true.
+
+So
+
+$$
+\epsilon \le \sum_{i \in [d]} \sum_{b \in \{1,2\}} \Pr[B_{i,b}].
+$$
+
+Each $B_{i,b}$ is exactly the event that the prover convinced the verifier of an incorrect claim inside a *single* sum-check. A sum-check over $O(\log S)$ variables of low degree has soundness error
+
+$$
+\Pr[B_{i,b}] \le \frac{(\#\text{variables}) \cdot (\text{degree})}{|\mathbb{F}|} = O\!\left(\frac{\log^2 S}{|\mathbb{F}|}\right).
+$$
+
+There are $2d$ such events (two claims per layer, $d$ layers), so
+
+$$
+\epsilon \le 2d \cdot O\!\left(\frac{\log^2 S}{|\mathbb{F}|}\right) = O\!\left(\frac{d \log^2 S}{|\mathbb{F}|}\right).
+$$
+
+Taking $|\mathbb{F}| = \mathrm{poly}(S)$ large enough makes the cheating probability negligible. $\qquad\blacksquare$
+
+---
+
+## Computing the Wiring Predicates
+
+One assumption is still outstanding: how does the verifier evaluate
+
+$$
+\widetilde{\mathrm{add}}_i
+\quad\text{and}\quad
+\widetilde{\mathrm{mult}}_i
+$$
+
+without reading the whole circuit? Two concrete obstacles:
+
+1. the input $(C, x)$ is large — $C$ has size $S$;
+2. we need the *extensions* $\widetilde{\mathrm{add}}_i, \widetilde{\mathrm{mult}}_i$, not just the Boolean predicates.
+
+<Callout type="tip" title="Key idea">
+Because the circuit family is **logspace uniform**, its wiring is *algorithmically computable* rather than stored as an arbitrary graph — so the verifier can compute the predicates on demand.
+</Callout>
+
+Logspace uniformity gives a Turing machine $M$ using $O(\log S)$ space that, given a short description $\langle C \rangle$, produces the circuit: $M(\langle C \rangle) = C$. Equivalently, given labels $(p, w_1, w_2)$ there is a small algorithm that decides whether $p$ is an add or a mult gate and whether its children are exactly $w_1$ and $w_2$.
+
+A standard result converts any logspace computation into a Boolean circuit with only polynomial overhead. Since the inputs $(p, w_1, w_2)$ carry only $O(\log S)$ bits, this yields Boolean formulas
+
+$$
+\phi^{\mathrm{add}}(p, w_1, w_2)
+\quad\text{and}\quad
+\phi^{\mathrm{mult}}(p, w_1, w_2),
+$$
+
+each of size $\mathrm{polylog}(S)$. Rather than working with an arbitrary circuit, GKR runs on a **universal circuit** $U$ with $U(\langle C \rangle, x) = C(x)$ whose routing follows a fixed architecture — so the verifier only evaluates these fixed formulas instead of searching an arbitrary wiring graph.
+
+Finally, **arithmetizing** $\phi^{\mathrm{add}}$ and $\phi^{\mathrm{mult}}$ produces the multilinear extensions $\widetilde{\mathrm{add}}$ and $\widetilde{\mathrm{mult}}$, which the verifier evaluates in $\mathrm{polylog}(S)$ time. The universal circuit costs only polynomial overhead,
+
+$$
+S_U = \mathrm{poly}(S),
+\qquad
+d_U = O(d \log S),
+$$
+
+so running GKR on $U$ instead of $C$ preserves the protocol's asymptotic efficiency while making the wiring predicates efficiently computable — closing the last gap.
+
+<Callout type="note" title="Where this goes next">
+GKR gives a doubly-efficient interactive proof for low-depth circuits. Removing interaction via **Fiat–Shamir** turns it non-interactive, the path toward succinct arguments and the **SNARG** (see the roadmap in [[interactive-proofs-sum-check]]).
+</Callout>
