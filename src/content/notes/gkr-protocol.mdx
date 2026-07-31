@@ -173,17 +173,20 @@ $$
 To describe the wiring, define two Boolean indicators on triples of gate labels $(p, w_1, w_2)$, where $p$ is a gate in layer $i$ and $w_1, w_2$ are its two children in layer $i+1$:
 
 $$
+\begin{aligned}
 \mathrm{add}_i(p, w_1, w_2) =
 \begin{cases}
 1, & \text{gate } p = w_1 + w_2, \\
 0, & \text{otherwise,}
 \end{cases}
-\qquad
+\\
+\\
 \mathrm{mult}_i(p, w_1, w_2) =
 \begin{cases}
 1, & \text{gate } p = w_1 \cdot w_2, \\
 0, & \text{otherwise.}
 \end{cases}
+\end{aligned}
 $$
 
 Both have signature $\{0,1\}^{3m} \to \{0,1\}$.
@@ -220,7 +223,8 @@ Since the challenge $z_i$ is fixed throughout, $\chi(p, z_i)$ is multilinear in 
 Two problems remain in the barebones sketch.
 
 <Callout type="question" title="Question">
-(1) Each layer's reduction leaves the verifier holding *two* evaluations of $\widetilde{V}_{i+1}$. (2) How does the verifier compute $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$?
+- (1) Each layer's reduction leaves the verifier holding *two* evaluations of $\widetilde{V}_{i+1}$.
+- (2) How does the verifier compute $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$?
 </Callout>
 
 For now assume the verifier can evaluate $\widetilde{\mathrm{add}}_i$ and $\widetilde{\mathrm{mult}}_i$ efficiently; we remove this assumption in the final section, **Computing the Wiring Predicates**.
