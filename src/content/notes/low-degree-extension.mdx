@@ -15,6 +15,8 @@ summary: "Lagrange interpolation, its multivariate generalization to the low-deg
 import Theorem from '../../components/research/Theorem.astro';
 import Proof from '../../components/research/Proof.astro';
 import Callout from '../../components/research/Callout.astro';
+import Plot from '../../components/research/Plot.astro';
+import Interpolator from '../../components/research/Interpolator.astro';
 
 ## Lagrange Interpolation
 
@@ -52,6 +54,30 @@ $$
 The polynomials $\chi_h(x)$ act like indicator functions for points in $H$: each one evaluates to $1$ at exactly one point of $H$ and $0$ everywhere else on $H$. This lets us reconstruct the unique polynomial agreeing with $f$ on $H$ as a linear combination of these basis polynomials.
 </Callout>
 
+The theorem is best felt by hand. Below are four nodes and the unique degree-$\le 3$ polynomial through them — drag any node vertically and watch $\tilde{f}$ respond. Switch the overlay to **basis** to see the bare indicators $\chi_h$, or to **contributions** to see the scaled terms $y_h\,\chi_h$ and drag the probe to watch them stack up to $\tilde{f}(x)$.
+
+<Interpolator />
+
+Each basis polynomial $\chi_h$ is pinned to $1$ at its own node and to $0$ at every other node of $H$ — the "indicator" behavior made visible:
+
+<Plot
+  domain={[-0.35, 3.35]}
+  curves={[
+    { fn: (x) => ((x - 1) * (x - 2) * (x - 3)) / -6, label: '\\chi_0', color: 'accent' },
+    { fn: (x) => (x * (x - 2) * (x - 3)) / 2, label: '\\chi_1', color: 'info' },
+    { fn: (x) => (x * (x - 1) * (x - 3)) / -2, label: '\\chi_2', color: 'positive' },
+    { fn: (x) => (x * (x - 1) * (x - 2)) / 6, label: '\\chi_3', color: 'caution' },
+  ]}
+  points={[
+    { x: 0, y: 1, color: 'accent' },
+    { x: 1, y: 1, color: 'info' },
+    { x: 2, y: 1, color: 'positive' },
+    { x: 3, y: 1, color: 'caution' },
+  ]}
+  xLabel="x"
+  caption="The Lagrange basis for H = {0, 1, 2, 3}. Each χ_h peaks at 1 on its own node (dot) and vanishes on the other three."
+/>
+
 ## Low-Degree Extension
 
 The **low-degree extension (LDE)** generalizes Lagrange interpolation from one variable to many. Instead of interpolating a function defined on a finite subset $H$, we interpolate a function defined on the finite grid $H^m$ by taking products of the one-dimensional Lagrange basis polynomials.
@@ -71,6 +97,37 @@ such that $\tilde{f}\big|_{H^m} = f$ and $\tilde{f}$ has degree at most $|H| - 1
 <Callout type="tip" title="Key idea">
 Any arbitrary function on a finite grid is the restriction of a low-degree polynomial. An unstructured lookup table can be replaced by an algebraic object — a low-degree polynomial — letting us bring algebraic techniques to bear on the function.
 </Callout>
+
+Concretely, take an arbitrary table of values on $H = \{0, 1, 2, 3, 4\}$ — no pattern, just five numbers. There is exactly one polynomial of degree $\le 4$ threading all of them; that polynomial *is* the low-degree extension:
+
+<Plot
+  domain={[-0.3, 4.3]}
+  curves={[
+    {
+      fn: (x) => {
+        const X = [0, 1, 2, 3, 4], Y = [2, -1, 1, 3, 0];
+        let s = 0;
+        for (let i = 0; i < 5; i++) {
+          let t = Y[i];
+          for (let j = 0; j < 5; j++) if (j !== i) t *= (x - X[j]) / (X[i] - X[j]);
+          s += t;
+        }
+        return s;
+      },
+      label: '\\tilde f(x)',
+      color: 'accent',
+    },
+  ]}
+  points={[
+    { x: 0, y: 2, color: 'accent' },
+    { x: 1, y: -1, color: 'accent' },
+    { x: 2, y: 1, color: 'accent' },
+    { x: 3, y: 3, color: 'accent' },
+    { x: 4, y: 0, color: 'accent' },
+  ]}
+  xLabel="x"
+  caption="An arbitrary lookup table on H = {0,1,2,3,4} and its unique low-degree extension — one polynomial of degree ≤ 4 through every point."
+/>
 
 The extension is given explicitly by
 
@@ -182,7 +239,29 @@ $$
 \tilde{f} : \mathbb{F}^{2 \log n} \to \mathbb{F},
 $$
 
-which is **multilinear** (we interpolate over $H = \{0,1\}$, of size $2$, so the degree in each variable is at most $1$). This turns the identity into a genuine sum-check instance:
+which is **multilinear** (we interpolate over $H = \{0,1\}$, of size $2$, so the degree in each variable is at most $1$). Over this smallest grid the basis collapses to two straight lines, $\chi_0(x) = 1 - x$ and $\chi_1(x) = x$ — the exact indicators the [GKR protocol](/notes/gkr-protocol) tensors together:
+
+<Plot
+  domain={[-0.3, 1.3]}
+  range={[-0.35, 1.35]}
+  height={300}
+  curves={[
+    { fn: (x) => 1 - x, label: '\\chi_0(x)=1-x', color: 'info' },
+    { fn: (x) => x, label: '\\chi_1(x)=x', color: 'accent' },
+  ]}
+  points={[
+    { x: 0, y: 1, color: 'info' },
+    { x: 1, y: 0, color: 'info' },
+    { x: 0, y: 0, color: 'accent' },
+    { x: 1, y: 1, color: 'accent' },
+  ]}
+  xTicks={[0, 1]}
+  yTicks={[0, 1]}
+  xLabel="x"
+  caption="The multilinear basis on H = {0,1}: two lines, each 1 at its own point and 0 at the other."
+/>
+
+This turns the identity into a genuine sum-check instance:
 
 $$
 \frac{1}{6} \sum_{i, j, k \in \{0,1\}^{\log n}} \tilde{f}(i, j)\cdot \tilde{f}(j, k)\cdot \tilde{f}(i, k) = \beta.

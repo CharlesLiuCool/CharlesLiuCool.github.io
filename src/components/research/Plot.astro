@@ -1,0 +1,391 @@
+---
+/*
+  Plot.astro — a build-time function/point plotter for math notes.
+
+  Curves are ordinary JavaScript functions, evaluated at build time (no client
+  JS), sampled across the domain and emitted as crisp SVG polylines. Colours are
+  design-token references, so light/dark theming is automatic. KaTeX labels are
+  rendered at build time.
+
+  Usage (inside MDX):
+
+    import Plot from '../../components/research/Plot.astro';
+
+    <Plot
+      domain={[-0.5, 3.5]}
+      curves={[
+        { fn: (x) => x*x - 2*x + 1, label: '\\tilde f(x)', color: 'accent' },
+      ]}
+      points={[
+        { x: 0, y: 1, labelTex: 'f(0)' },
+        { x: 1, y: 0 },
+      ]}
+      xLabel="x"
+      yLabel="y"
+      caption="A parabola through three points."
+    />
+
+  Props:
+    domain: [xmin, xmax]              (required)
+    range?: [ymin, ymax]             (auto-fit from curves + points if omitted)
+    width?  = 640   height? = 380    (SVG pixel canvas)
+    samples? = 260                   (points sampled per curve)
+    grid?   = true
+    curves?: Curve[]                 Curve = { fn, label?, color?, dashed?, width? }
+    points?: Point[]                 Point = { x, y, label?, labelTex?, color?, open? }
+    xLabel? / yLabel?  (KaTeX)
+    xTicks? / yTicks?: number[]      (auto "nice" ticks if omitted)
+    caption?  (KaTeX-aware plain string) / captionTex?
+    height, padding auto-adjust for labels.
+*/
+import katex from 'katex';
+
+interface Curve {
+  fn: (x: number) => number;
+  label?: string;      // KaTeX
+  color?: string;      // token name — see COLORS
+  dashed?: boolean;
+  width?: number;
+}
+interface Point {
+  x: number;
+  y: number;
+  label?: string;      // plain text
+  labelTex?: string;   // KaTeX
+  color?: string;
+  open?: boolean;      // hollow marker
+}
+interface Props {
+  domain: [number, number];
+  range?: [number, number];
+  width?: number;
+  height?: number;
+  samples?: number;
+  grid?: boolean;
+  curves?: Curve[];
+  points?: Point[];
+  xLabel?: string;
+  yLabel?: string;
+  xTicks?: number[];
+  yTicks?: number[];
+  caption?: string;
+  captionTex?: string;
+}
+
+const {
+  domain,
+  range,
+  width = 640,
+  height = 380,
+  samples = 260,
+  grid = true,
+  curves = [],
+  points = [],
+  xLabel,
+  yLabel,
+  xTicks,
+  yTicks,
+  caption,
+  captionTex,
+} = Astro.props;
+
+// ── Colour tokens (theme-aware; resolve to CSS custom properties) ──
+const COLORS: Record<string, string> = {
+  accent: 'var(--accent)',
+  info: 'var(--hue-info)',
+  positive: 'var(--hue-positive)',
+  caution: 'var(--hue-caution)',
+  negative: 'var(--hue-negative)',
+  muted: 'var(--text-faint)',
+};
+const CYCLE = ['accent', 'info', 'positive', 'caution', 'negative'];
+const col = (name?: string, i = 0) => COLORS[name ?? CYCLE[i % CYCLE.length]] ?? COLORS.accent;
+
+const tex = (s?: string) =>
+  s ? katex.renderToString(s, { throwOnError: false, displayMode: false }) : '';
+
+const [xmin, xmax] = domain;
+
+// ── Sample curves at build time ──
+const sampled = curves.map((c) => {
+  const pts: { x: number; y: number }[] = [];
+  for (let i = 0; i <= samples; i++) {
+    const x = xmin + (i / samples) * (xmax - xmin);
+    let y: number;
+    try {
+      y = c.fn(x);
+    } catch {
+      y = NaN;
+    }
+    pts.push({ x, y });
+  }
+  return pts;
+});
+
+// ── Determine y-range ──
+let ymin: number, ymax: number;
+if (range) {
+  [ymin, ymax] = range;
+} else {
+  const ys: number[] = [];
+  for (const s of sampled) for (const p of s) if (Number.isFinite(p.y)) ys.push(p.y);
+  for (const p of points) if (Number.isFinite(p.y)) ys.push(p.y);
+  if (ys.length === 0) { ys.push(-1, 1); }
+  let lo = Math.min(...ys), hi = Math.max(...ys);
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const pad = (hi - lo) * 0.12;
+  ymin = lo - pad;
+  ymax = hi + pad;
+}
+
+// ── Layout / padding ──
+const padL = yLabel ? 52 : 42;
+const padR = 18;
+const padT = 16;
+const padB = xLabel ? 44 : 32;
+const plotW = width - padL - padR;
+const plotH = height - padT - padB;
+
+const sx = (x: number) => padL + ((x - xmin) / (xmax - xmin)) * plotW;
+const sy = (y: number) => padT + ((ymax - y) / (ymax - ymin)) * plotH;
+
+// ── "Nice" tick generation ──
+function niceTicks(lo: number, hi: number, target = 6): number[] {
+  const span = hi - lo;
+  if (span <= 0) return [lo];
+  const raw = span / target;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const step = (norm >= 5 ? 5 : norm >= 2 ? 2 : 1) * mag;
+  const start = Math.ceil(lo / step) * step;
+  const out: number[] = [];
+  for (let v = start; v <= hi + step * 1e-6; v += step) {
+    out.push(Math.abs(v) < step * 1e-6 ? 0 : +v.toFixed(10));
+  }
+  return out;
+}
+const fmt = (v: number) => {
+  const r = +v.toFixed(4);
+  return Object.is(r, -0) ? '0' : String(r);
+};
+
+const xt = xTicks ?? niceTicks(xmin, xmax, 7);
+const yt = yTicks ?? niceTicks(ymin, ymax, 6);
+
+// ── Build polyline segments, breaking on NaN / out-of-range excursions ──
+const OUT = (ymax - ymin) * 4; // clamp threshold for asymptotes
+function toSegments(pts: { x: number; y: number }[]): string[] {
+  const segs: string[] = [];
+  let cur: string[] = [];
+  const flush = () => { if (cur.length > 1) segs.push(cur.join(' ')); cur = []; };
+  for (const p of pts) {
+    const bad = !Number.isFinite(p.y) || p.y > ymax + OUT || p.y < ymin - OUT;
+    if (bad) { flush(); continue; }
+    cur.push(`${sx(p.x).toFixed(2)},${sy(p.y).toFixed(2)}`);
+  }
+  flush();
+  return segs;
+}
+const curveSegs = sampled.map(toSegments);
+
+const axisX0 = xmin <= 0 && xmax >= 0 ? sx(0) : null;
+const axisY0 = ymin <= 0 && ymax >= 0 ? sy(0) : null;
+
+const legend = curves.filter((c) => c.label);
+---
+
+<figure class="plot not-prose">
+  <svg
+    class="plot__svg"
+    viewBox={`0 0 ${width} ${height}`}
+    width="100%"
+    role="img"
+    aria-label={caption ?? 'plot'}
+  >
+    <!-- grid -->
+    {grid && (
+      <g class="plot__grid">
+        {xt.map((t) => (
+          <line x1={sx(t)} y1={padT} x2={sx(t)} y2={padT + plotH} />
+        ))}
+        {yt.map((t) => (
+          <line x1={padL} y1={sy(t)} x2={padL + plotW} y2={sy(t)} />
+        ))}
+      </g>
+    )}
+
+    <!-- plot frame -->
+    <rect
+      class="plot__frame"
+      x={padL} y={padT} width={plotW} height={plotH}
+    />
+
+    <!-- zero axes -->
+    {axisY0 !== null && (
+      <line class="plot__axis" x1={padL} y1={axisY0} x2={padL + plotW} y2={axisY0} />
+    )}
+    {axisX0 !== null && (
+      <line class="plot__axis" x1={axisX0} y1={padT} x2={axisX0} y2={padT + plotH} />
+    )}
+
+    <!-- tick labels -->
+    <g class="plot__ticklabels">
+      {xt.map((t) => (
+        <text x={sx(t)} y={padT + plotH + 15} text-anchor="middle">{fmt(t)}</text>
+      ))}
+      {yt.map((t) => (
+        <text x={padL - 7} y={sy(t) + 3.5} text-anchor="end">{fmt(t)}</text>
+      ))}
+    </g>
+
+    <!-- curves -->
+    {curveSegs.map((segs, i) => (
+      <g>
+        {segs.map((pts) => (
+          <polyline
+            points={pts}
+            fill="none"
+            stroke={col(curves[i].color, i)}
+            stroke-width={curves[i].width ?? 2.4}
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-dasharray={curves[i].dashed ? '5 4' : undefined}
+          />
+        ))}
+      </g>
+    ))}
+
+    <!-- points -->
+    {points.map((p, i) => (
+      <g class="plot__point">
+        <circle
+          cx={sx(p.x)}
+          cy={sy(p.y)}
+          r="4.5"
+          fill={p.open ? 'var(--bg-card)' : col(p.color, i)}
+          stroke={col(p.color, i)}
+          stroke-width="2"
+        />
+        {(p.label || p.labelTex) && (
+          <foreignObject
+            x={sx(p.x) + 7}
+            y={sy(p.y) - 24}
+            width="120"
+            height="22"
+          >
+            <span class="plot__ptlabel" set:html={p.labelTex ? tex(p.labelTex) : p.label} />
+          </foreignObject>
+        )}
+      </g>
+    ))}
+
+    <!-- axis labels -->
+    {xLabel && (
+      <foreignObject x={padL + plotW / 2 - 60} y={height - 22} width="120" height="20">
+        <span class="plot__axislabel" set:html={tex(xLabel)} />
+      </foreignObject>
+    )}
+    {yLabel && (
+      <foreignObject
+        x={-(padT + plotH / 2) - 60}
+        y="2"
+        width="120"
+        height="20"
+        transform="rotate(-90)"
+        style="transform-box: view-box;"
+      >
+        <span class="plot__axislabel" set:html={tex(yLabel)} />
+      </foreignObject>
+    )}
+  </svg>
+
+  {legend.length > 0 && (
+    <div class="plot__legend">
+      {curves.map((c, i) => c.label && (
+        <span class="plot__legend-item">
+          <span
+            class="plot__swatch"
+            style={`--sw:${col(c.color, i)}`}
+            data-dashed={c.dashed ? '' : undefined}
+          ></span>
+          <span set:html={tex(c.label)} />
+        </span>
+      ))}
+    </div>
+  )}
+
+  {(caption || captionTex) && (
+    <figcaption class="plot__caption">
+      {captionTex ? <span set:html={tex(captionTex)} /> : caption}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .plot {
+    margin: var(--space-6) 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    box-shadow: var(--shadow-sm);
+  }
+  .plot__svg { display: block; width: 100%; height: auto; }
+
+  .plot__grid line { stroke: var(--border-subtle); stroke-width: 1; }
+  .plot__frame { fill: none; stroke: var(--border-default); stroke-width: 1; }
+  .plot__axis { stroke: var(--border-strong); stroke-width: 1.25; }
+
+  .plot__ticklabels text {
+    fill: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .plot__ptlabel {
+    display: inline-block;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .plot__axislabel {
+    display: inline-block;
+    width: 120px;
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+
+  .plot__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+  }
+  .plot__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+  .plot__swatch {
+    width: 20px;
+    height: 0;
+    border-top: 2.6px solid var(--sw);
+    display: inline-block;
+  }
+  .plot__swatch[data-dashed] { border-top-style: dashed; }
+
+  .plot__caption {
+    margin-top: var(--space-3);
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    line-height: var(--leading-snug);
+  }
+</style>

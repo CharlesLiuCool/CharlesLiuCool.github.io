@@ -1,0 +1,435 @@
+---
+/*
+  Interpolator.astro — an interactive Lagrange-interpolation playground.
+
+  Drag the nodes vertically; the unique low-degree polynomial through them
+  updates live. An overlay switch shows either the bare Lagrange basis χ_h
+  (each 1 at its own node, 0 at the others) or the scaled contributions
+  y_h·χ_h, whose signed sum IS the interpolant. In contributions mode a
+  draggable probe stacks those contributions at a chosen x, so you can watch
+  them add up to f̃(x).
+
+  Self-contained vanilla JS (no external imports) — every instance on the page
+  initialises itself. Static chrome (grid, axes, ticks) is rendered at build
+  time so something sensible shows even before hydration.
+
+  Props:
+    points?:  {x, y}[]     initial nodes (default: four nodes)
+    domain?:  [xmin, xmax]
+    range?:   [ymin, ymax]
+    width?, height?
+    controls? = true       expose the overlay switch (basis / contributions)
+    caption?
+*/
+interface Node { x: number; y: number; }
+interface Props {
+  points?: Node[];
+  domain?: [number, number];
+  range?: [number, number];
+  width?: number;
+  height?: number;
+  controls?: boolean;
+  caption?: string;
+}
+
+const {
+  points = [
+    { x: 0, y: 1 },
+    { x: 1, y: 3 },
+    { x: 2, y: 0 },
+    { x: 3, y: 2 },
+  ],
+  domain,
+  range = [-3, 5],
+  width = 640,
+  height = 400,
+  controls = true,
+  caption = 'Drag the nodes to change the data. Switch on contributions to see each yₕ·χₕ term, then drag the probe to watch them sum to f̃.',
+} = Astro.props;
+
+const xs = points.map((p) => p.x);
+const dom: [number, number] = domain ?? [Math.min(...xs) - 0.5, Math.max(...xs) + 0.5];
+const [xmin, xmax] = dom;
+const [ymin, ymax] = range;
+
+const padL = 40, padR = 18, padT = 16, padB = 30;
+const plotW = width - padL - padR;
+const plotH = height - padT - padB;
+const sx = (x: number) => padL + ((x - xmin) / (xmax - xmin)) * plotW;
+const sy = (y: number) => padT + ((ymax - y) / (ymax - ymin)) * plotH;
+
+const range01 = (a: number, b: number) => {
+  const out: number[] = [];
+  for (let v = Math.ceil(a); v <= Math.floor(b); v++) out.push(v);
+  return out;
+};
+const xt = range01(xmin, xmax);
+const yt = range01(ymin, ymax);
+
+const probe0 = +(((xmin + xmax) / 2)).toFixed(2);
+const uid = 'interp-' + Math.random().toString(36).slice(2, 9);
+const cfg = JSON.stringify({
+  points, xmin, xmax, ymin, ymax, padL, padT, plotW, plotH, width, height, probe0,
+});
+---
+
+<figure class="interp not-prose" id={uid} data-cfg={cfg}>
+  <div class="interp__bar">
+    <span class="interp__title">Lagrange interpolation</span>
+    {controls && (
+      <div class="interp__modes" role="group" aria-label="overlay">
+        <button type="button" class="interp__mode is-active" data-mode="off">off</button>
+        <button type="button" class="interp__mode" data-mode="basis">basis&nbsp;&chi;<sub>h</sub></button>
+        <button type="button" class="interp__mode" data-mode="contrib">contributions&nbsp;y<sub>h</sub>&chi;<sub>h</sub></button>
+      </div>
+    )}
+    <button type="button" class="interp__reset">reset</button>
+  </div>
+
+  <svg class="interp__svg" viewBox={`0 0 ${width} ${height}`} width="100%">
+    <defs>
+      <clipPath id={`${uid}-clip`}>
+        <rect x={padL} y={padT} width={plotW} height={plotH} />
+      </clipPath>
+    </defs>
+
+    <!-- static grid -->
+    <g class="interp__grid">
+      {xt.map((t) => <line x1={sx(t)} y1={padT} x2={sx(t)} y2={padT + plotH} />)}
+      {yt.map((t) => <line x1={padL} y1={sy(t)} x2={padL + plotW} y2={sy(t)} />)}
+    </g>
+    <rect class="interp__frame" x={padL} y={padT} width={plotW} height={plotH} />
+    {ymin <= 0 && ymax >= 0 && (
+      <line class="interp__axis" x1={padL} y1={sy(0)} x2={padL + plotW} y2={sy(0)} />
+    )}
+
+    <g class="interp__ticklabels">
+      {xt.map((t) => <text x={sx(t)} y={padT + plotH + 15} text-anchor="middle">{t}</text>)}
+      {yt.map((t) => <text x={padL - 6} y={sy(t) + 3.5} text-anchor="end">{t}</text>)}
+    </g>
+
+    <!-- dynamic layers (populated by JS) -->
+    <g class="interp__overlay" clip-path={`url(#${uid}-clip)`}></g>
+    <path class="interp__curve" clip-path={`url(#${uid}-clip)`} fill="none"></path>
+    <g class="interp__probe" clip-path={`url(#${uid}-clip)`}></g>
+    <g class="interp__handles"></g>
+  </svg>
+
+  <figcaption class="interp__caption">{caption}</figcaption>
+</figure>
+
+<style>
+  .interp {
+    margin: var(--space-6) 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    padding: var(--space-3) var(--space-4) var(--space-3);
+    box-shadow: var(--shadow-sm);
+  }
+  .interp__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-2);
+  }
+  .interp__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-right: auto;
+  }
+
+  /* ── Segmented overlay switch ─────────────────────────── */
+  .interp__modes {
+    display: inline-flex;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .interp__mode {
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border: none;
+    border-left: 1px solid var(--border-default);
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: background var(--transition-fast), color var(--transition-fast);
+  }
+  .interp__mode:first-child { border-left: none; }
+  .interp__mode sub { font-size: 0.8em; }
+  .interp__mode:hover { color: var(--text-primary); background: var(--bg-surface); }
+  .interp__mode.is-active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+
+  .interp__reset {
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: color var(--transition-fast), border-color var(--transition-fast);
+  }
+  .interp__reset:hover { color: var(--accent); border-color: var(--accent-line); }
+
+  .interp__svg { display: block; width: 100%; height: auto; touch-action: none; }
+  .interp__grid line { stroke: var(--border-subtle); stroke-width: 1; }
+  .interp__frame { fill: none; stroke: var(--border-default); stroke-width: 1; }
+  .interp__axis { stroke: var(--border-strong); stroke-width: 1.25; }
+  .interp__ticklabels text {
+    fill: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .interp__curve { stroke: var(--accent); stroke-width: 2.6; stroke-linejoin: round; }
+
+  /* Everything below is injected by JS at runtime, so Astro's build-time
+     scoped styles never reach it — style it globally. Class names are
+     component-unique, so this stays contained. */
+  :global(.interp__overlay path) { fill: none; }
+  :global(.interp__probe-line) { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 3; }
+  :global(.interp__probe-dot)  { fill: var(--bg-card); stroke: var(--accent); stroke-width: 2; }
+  :global(.interp__probe-val)  { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; }
+  :global(.interp__probe-knob) { fill: var(--accent); stroke: var(--bg-card); stroke-width: 1.5; cursor: ew-resize; }
+  :global(.interp__probe-hit)  { fill: transparent; cursor: ew-resize; }
+
+  :global(.interp__handles circle) {
+    fill: var(--bg-card);
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    cursor: grab;
+    transition: r var(--transition-fast);
+  }
+  :global(.interp__handles circle:hover) { fill: var(--accent-soft); }
+  :global(.interp__handles circle.dragging) { cursor: grabbing; fill: var(--accent); }
+
+  .interp__caption {
+    margin-top: var(--space-2);
+    text-align: center;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+  }
+</style>
+
+<script>
+  type Cfg = {
+    points: { x: number; y: number }[];
+    xmin: number; xmax: number; ymin: number; ymax: number;
+    padL: number; padT: number; plotW: number; plotH: number;
+    width: number; height: number; probe0: number;
+  };
+
+  // Per-node colours for the scaled contributions (and node tint in that mode).
+  const CC = [
+    'var(--hue-info)',
+    'var(--hue-positive)',
+    'var(--hue-caution)',
+    'var(--hue-negative)',
+    'var(--accent)',
+  ];
+  const color = (i: number) => CC[i % CC.length];
+
+  function initInterpolator(root: HTMLElement) {
+    const cfg: Cfg = JSON.parse(root.dataset.cfg || '{}');
+    const svg = root.querySelector('.interp__svg') as SVGSVGElement;
+    const curveEl = root.querySelector('.interp__curve') as SVGPathElement;
+    const overlayEl = root.querySelector('.interp__overlay') as SVGGElement;
+    const probeEl = root.querySelector('.interp__probe') as SVGGElement;
+    const handlesEl = root.querySelector('.interp__handles') as SVGGElement;
+    const modeBtns = Array.from(root.querySelectorAll('.interp__mode')) as HTMLButtonElement[];
+    const resetBtn = root.querySelector('.interp__reset') as HTMLButtonElement | null;
+
+    const { xmin, xmax, ymin, ymax, padL, padT, plotW, plotH, width, height } = cfg;
+    const init = cfg.points.map((p) => ({ ...p }));
+    let nodes = init.map((p) => ({ ...p }));
+    let mode: 'off' | 'basis' | 'contrib' = 'off';
+    let probeX = cfg.probe0;
+
+    const sx = (x: number) => padL + ((x - xmin) / (xmax - xmin)) * plotW;
+    const sy = (y: number) => padT + ((ymax - y) / (ymax - ymin)) * plotH;
+
+    // Lagrange basis χ_i evaluated at x (depends only on node x-positions)
+    const basisAt = (i: number, x: number) => {
+      let v = 1;
+      for (let j = 0; j < nodes.length; j++) {
+        if (j === i) continue;
+        v *= (x - nodes[j].x) / (nodes[i].x - nodes[j].x);
+      }
+      return v;
+    };
+    const contribAt = (i: number, x: number) => nodes[i].y * basisAt(i, x);
+    const evalAt = (x: number) => {
+      let s = 0;
+      for (let i = 0; i < nodes.length; i++) s += contribAt(i, x);
+      return s;
+    };
+
+    const path = (fn: (x: number) => number) => {
+      const N = 240;
+      let d = '';
+      let started = false; // true once the current segment has its first point
+      for (let k = 0; k <= N; k++) {
+        const x = xmin + (k / N) * (xmax - xmin);
+        const y = fn(x);
+        if (!Number.isFinite(y)) { started = false; continue; }
+        d += `${started ? 'L' : 'M'}${sx(x).toFixed(2)} ${sy(y).toFixed(2)} `;
+        started = true;
+      }
+      return d.trim();
+    };
+
+    function drawOverlay() {
+      if (mode === 'basis') {
+        overlayEl.innerHTML = nodes
+          .map(
+            (_, i) =>
+              `<path d="${path((x) => basisAt(i, x))}" style="stroke:var(--hue-info);stroke-width:1.4;stroke-dasharray:4 4;opacity:.55"></path>`
+          )
+          .join('');
+      } else if (mode === 'contrib') {
+        overlayEl.innerHTML = nodes
+          .map(
+            (_, i) =>
+              `<path d="${path((x) => contribAt(i, x))}" style="stroke:${color(i)};stroke-width:1.8;opacity:.85"></path>`
+          )
+          .join('');
+      } else {
+        overlayEl.innerHTML = '';
+      }
+    }
+
+    function drawProbe() {
+      if (mode !== 'contrib') { probeEl.innerHTML = ''; return; }
+      const px = sx(probeX);
+      // stack signed contributions from y = 0 up to f̃(probeX)
+      let cum = 0;
+      const bw = 9;
+      let bars = '';
+      for (let i = 0; i < nodes.length; i++) {
+        const from = cum;
+        cum += contribAt(i, probeX);
+        const y1 = sy(from), y2 = sy(cum);
+        const top = Math.min(y1, y2), h = Math.abs(y2 - y1);
+        if (h < 0.4) continue;
+        bars += `<rect x="${(px - bw / 2).toFixed(2)}" y="${top.toFixed(2)}" width="${bw}" height="${h.toFixed(2)}" fill="${color(i)}" stroke="var(--bg-card)" stroke-width="0.75"></rect>`;
+      }
+      const fv = cum;
+      const rightSpace = px < padL + plotW - 70;
+      const tx = rightSpace ? px + 9 : px - 9;
+      const anchor = rightSpace ? 'start' : 'end';
+      probeEl.innerHTML =
+        `<rect class="interp__probe-hit" x="${(px - 8).toFixed(2)}" y="${padT}" width="16" height="${plotH}"></rect>` +
+        `<line class="interp__probe-line" x1="${px.toFixed(2)}" y1="${padT}" x2="${px.toFixed(2)}" y2="${(padT + plotH).toFixed(2)}"></line>` +
+        bars +
+        `<circle class="interp__probe-dot" cx="${px.toFixed(2)}" cy="${sy(fv).toFixed(2)}" r="4"></circle>` +
+        `<text class="interp__probe-val" x="${tx.toFixed(2)}" y="${(sy(fv) - 8).toFixed(2)}" text-anchor="${anchor}">f̃(${probeX.toFixed(2)}) = ${fv.toFixed(2)}</text>` +
+        `<circle class="interp__probe-knob" cx="${px.toFixed(2)}" cy="${(padT + plotH).toFixed(2)}" r="6"></circle>`;
+      probeEl.querySelector('.interp__probe-knob')?.addEventListener('pointerdown', probeDown as EventListener);
+      probeEl.querySelector('.interp__probe-hit')?.addEventListener('pointerdown', probeDown as EventListener);
+    }
+
+    function drawHandles() {
+      handlesEl.innerHTML = nodes
+        .map((n, i) => {
+          const stroke = mode === 'contrib' ? color(i) : 'var(--accent)';
+          return `<circle data-i="${i}" cx="${sx(n.x).toFixed(2)}" cy="${sy(n.y).toFixed(2)}" r="7" style="stroke:${stroke}"></circle>`;
+        })
+        .join('');
+      handlesEl.querySelectorAll('circle').forEach((c) =>
+        c.addEventListener('pointerdown', nodeDown as EventListener)
+      );
+    }
+
+    function draw() {
+      curveEl.setAttribute('d', path(evalAt));
+      drawOverlay();
+      drawProbe();
+      drawHandles();
+    }
+
+    // ── Dragging ─────────────────────────────────────────
+    let activeNode = -1;
+    let draggingProbe = false;
+
+    const clientToDataY = (clientY: number) => {
+      const rect = svg.getBoundingClientRect();
+      const vy = (clientY - rect.top) * (height / rect.height);
+      const y = ymax - ((vy - padT) / plotH) * (ymax - ymin);
+      return Math.max(ymin + 0.15, Math.min(ymax - 0.15, y));
+    };
+    const clientToDataX = (clientX: number) => {
+      const rect = svg.getBoundingClientRect();
+      const vx = (clientX - rect.left) * (width / rect.width);
+      const x = xmin + ((vx - padL) / plotW) * (xmax - xmin);
+      return Math.max(xmin, Math.min(xmax, x));
+    };
+
+    function nodeDown(e: PointerEvent) {
+      const t = e.target as SVGCircleElement;
+      activeNode = +(t.dataset.i || -1);
+      t.classList.add('dragging');
+      svg.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+    function probeDown(e: PointerEvent) {
+      draggingProbe = true;
+      svg.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    }
+    function onMove(e: PointerEvent) {
+      if (draggingProbe) {
+        probeX = +clientToDataX(e.clientX).toFixed(3);
+        drawProbe();
+        return;
+      }
+      if (activeNode < 0) return;
+      nodes[activeNode].y = +clientToDataY(e.clientY).toFixed(3);
+      // vertical drag: curve + contributions + probe stack all rescale
+      curveEl.setAttribute('d', path(evalAt));
+      drawOverlay();
+      drawProbe();
+      const c = handlesEl.querySelector(`circle[data-i="${activeNode}"]`);
+      if (c) { c.setAttribute('cy', sy(nodes[activeNode].y).toFixed(2)); c.classList.add('dragging'); }
+    }
+    function onUp(e: PointerEvent) {
+      try { svg.releasePointerCapture(e.pointerId); } catch {}
+      activeNode = -1;
+      draggingProbe = false;
+      handlesEl.querySelectorAll('circle').forEach((c) => c.classList.remove('dragging'));
+    }
+
+    svg.addEventListener('pointermove', onMove);
+    svg.addEventListener('pointerup', onUp);
+    window.addEventListener('pointerup', onUp);
+
+    modeBtns.forEach((b) =>
+      b.addEventListener('click', () => {
+        mode = (b.dataset.mode as typeof mode) || 'off';
+        modeBtns.forEach((x) => x.classList.toggle('is-active', x === b));
+        draw();
+      })
+    );
+    resetBtn?.addEventListener('click', () => {
+      nodes = init.map((p) => ({ ...p }));
+      probeX = cfg.probe0;
+      draw();
+    });
+
+    draw();
+  }
+
+  document.querySelectorAll<HTMLElement>('.interp[data-cfg]').forEach(initInterpolator);
+</script>

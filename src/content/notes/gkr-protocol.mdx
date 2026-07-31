@@ -241,13 +241,50 @@ $$
 M_i = \sum_{p, w_1, w_2} \widetilde{\mathrm{mult}}_i(p, w_1, w_2)\, \widetilde{V}_{i+1}(w_1)\, \widetilde{V}_{i+1}(w_2)\,\chi(p, z_i).
 $$
 
-GKR runs **two sum-checks in parallel** — one for $A_i$, one for $M_i$ — reusing the *same* verifier randomness in every round, so both terminate at the same random point $(r_p, r_1, r_2)$. Consequently both reduce to the same two evaluations,
+GKR runs **two sum-checks in parallel** — one for $A_i$, one for $M_i$. The key move is that the verifier feeds *both* the **same** random challenges in every round, so they terminate at the same point and reduce to the same two evaluations,
 
 $$
 \widetilde{V}_{i+1}(r_1)
 \quad\text{and}\quad
 \widetilde{V}_{i+1}(r_2).
 $$
+
+### Why shared randomness lands on the same point
+
+Recall how a sum-check *ends*. Running it on a polynomial $g(x_1, \ldots, x_n)$, each round the prover sends a univariate polynomial and the verifier answers with a fresh random $r_j$, fixing $x_j = r_j$:
+
+$$
+g(x_1, \ldots, x_n) \ \longrightarrow\ g(r_1, x_2, \ldots, x_n) \ \longrightarrow\ \cdots \ \longrightarrow\ g(r_1, \ldots, r_n).
+$$
+
+The final claim is evaluated at exactly the verifier's own random choices $(r_1, \ldots, r_n)$ — nothing else determines the endpoint.
+
+Now, $A_i$ and $M_i$ are two *different* polynomials, but in the **same** $3m$ variables
+
+$$
+(\underbrace{p_1, \ldots, p_m}_{p},\ \underbrace{w_{1,1}, \ldots, w_{1,m}}_{w_1},\ \underbrace{w_{2,1}, \ldots, w_{2,m}}_{w_2}).
+$$
+
+If the verifier ran the two sum-checks with *independent* randomness, they would end at different points $(r_p^{(A)}, r_1^{(A)}, r_2^{(A)})$ and $(r_p^{(M)}, r_1^{(M)}, r_2^{(M)})$, leaving **four** evaluations to check:
+
+$$
+\widetilde{V}_{i+1}(r_1^{(A)}),\quad
+\widetilde{V}_{i+1}(r_2^{(A)}),\quad
+\widetilde{V}_{i+1}(r_1^{(M)}),\quad
+\widetilde{V}_{i+1}(r_2^{(M)}).
+$$
+
+Instead the verifier sends the *identical* challenge in each round of both executions — the same $r_{p,1}$ in round $1$, the same $r_{p,2}$ in round $2$, and so on through the $w_1$- and $w_2$-blocks. Since the endpoint is nothing but the sequence of challenges, both sum-checks finish at the very same
+
+$$
+(r_p, r_1, r_2),
+$$
+
+even though the prover was answering two different polynomials. Both therefore reduce to the *same* pair $\widetilde{V}_{i+1}(r_1),\ \widetilde{V}_{i+1}(r_2)$ — two evaluations instead of four.
+
+<Callout type="note" title="Why is this allowed?">
+Sum-check soundness only requires that each challenge be **uniformly random** over $\mathbb{F}$ — it never requires two separate executions to use *independent* randomness. So reusing one random transcript across both sum-checks preserves the completeness and soundness analysis, while collapsing four evaluation points down to two. This is exactly what makes the later line-restriction step possible.
+</Callout>
 
 ### The problem: claims branch
 
