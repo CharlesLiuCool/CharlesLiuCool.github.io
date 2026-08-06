@@ -34,9 +34,10 @@ export const NAV = [
   {
     label: 'MAIN',
     items: [
-      { href: '/',      label: 'Home',     icon: '⌂' },
-      { href: '/about', label: 'About',    icon: '◈' },
-      { href: '/cv',    label: 'CV',       icon: '▤' },
+      { href: '/',         label: 'Home',     icon: '⌂' },
+      { href: '/about',    label: 'About',    icon: '◈' },
+      { href: '/cv',       label: 'CV',       icon: '▤' },
+      { href: '/calendar', label: 'Calendar', icon: '▦' },
     ],
   },
   {
