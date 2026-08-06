@@ -1,0 +1,369 @@
+---
+title: "Fourier Series, the Fourier Transform, and Poisson Summation"
+date: "2026-08-05"
+tags:
+  [
+    "analysis",
+    "fourier-analysis",
+    "fourier-transform",
+    "poisson-summation",
+    "functional-analysis",
+    "harmonic-analysis",
+  ]
+summary: "From Weierstrass's density theorem to Fourier series, the Fourier transform, and the Poisson summation formula — building the trigonometric orthonormal basis of continuous functions on [0,1] and using it to turn hard sums into easy ones, with an application to equidistribution."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Callout from '../../components/research/Callout.astro';
+
+## Problem Statement
+
+We can approximate differentiable functions with polynomials using Taylor Series.
+
+$$
+f(x) \approx \sum_{i=1}^n \frac{f^{(n)}(x)\,x^n}{n!}
+$$
+
+But for non-differentiable functions, this is not possible. You simply can't take the derivative!
+
+---
+
+## Weierstrass Theorem
+
+Let's talk about all the continuous functions from $0$ to $1$.
+
+$$
+C([0,1]) = \{f: [0,1] \to \mathbb{R} \text{ that is continuous}\}
+$$
+
+is a vector space.
+
+<Theorem label="Exercise">
+$C([0,1])$ is a [vector space](#vector-space) over $\mathbb{R}$.
+</Theorem>
+
+Really, we can generalize this to any continuous function over a compact support.
+
+$$
+C(x) = \{f: x \to \mathbb{R} \text{ that is continuous}\}
+$$
+
+Also, we can generalize it to be complex:
+
+$$
+C(x) = \{f: x \to \mathbb{C} \text{ that is continuous}\}
+$$
+
+<Callout type="tip" title="Key idea">
+Just a vector space alone isn't enough for us to reason about this. We need some sort of clean representation.
+
+Recall in linear algebra, a clean way to represent spaces is using an [orthonormal basis](#orthonormal-basis)!
+</Callout>
+
+In linear algebra, orthogonality just means perpendicular, and normality means length $1$! Here is the generalization of that concept.
+
+For orthonormality, we need an [inner product](#inner-product).
+
+We define the *inner product* for reals $\mathbb{R}$:
+
+$$
+\langle f,g\rangle = \int_{0}^1 f(x)g(x)\,dx
+$$
+
+Or for the complex generalization:
+
+$$
+\langle f,g\rangle = \int_{0}^1 f(x)\overline{g(x)}\,dx
+$$
+
+We see this indeed is an inner product.
+
+<Theorem label="Exercise">
+$\langle \cdot, \cdot \rangle$ defined earlier is an inner product in $C([0,1])$.
+</Theorem>
+
+A non-trivial result is we can create an orthonormal basis out of trigonometric functions:
+
+<Theorem label="Exercise">
+$\{\sin(2\pi n x), \cos(2\pi n x)\}_{n = -\infty}^\infty$ is an *orthonormal set* in $C([0,1])$.
+</Theorem>
+
+What's cool is we can use linear combinations of these elements to build the continuous functions we need. More rigorously:
+
+Let $V = \operatorname{span}\{\sin(2\pi n x), \cos(2\pi n x)\}_{n = -\infty}^{\infty}$.
+
+<Theorem title="Weierstrass Theorem">
+$V$ is *dense* in $C([0,1])$. This means given $f \in C([0,1])$, for any $\epsilon > 0$,
+
+$$
+\exists\;m \in \mathbb{Z} \text{ and } g(x) = \sum_{n = -m}^{m}\big(a_n \sin(2\pi n x) + b_n \cos(2 \pi n x)\big) \in V
+$$
+
+such that $|f(x) - g(x)| < \epsilon$ $\;\forall\;x \in [0,1]$.
+
+In fact, this also means $f$ is approximable by a polynomial, since $\sin$ and $\cos$ can both be approximated by polynomials through Taylor series.
+</Theorem>
+
+What this means is for any continuous function between $0$ and $1$, there exists some function built from the *finite* linear combinations of trigonometric $\sin$ and $\cos$ terms which approximates arbitrarily close to $f$.
+
+As $\epsilon$ (room for tolerance between $f$ and the approximation $g$) decreases, $m$ (the number of summands) increases.
+
+So if we extend $m$ to infinity, we can get arbitrarily close to any continuous function between $0$ and $1$ we want!
+
+---
+
+## Fourier Series
+
+Fourier series is just the $g(x)$ in Weierstrass extended to infinity. It lets you approximate functions with linear combinations of trigonometric functions.
+
+For $f \in C([0,1])$ in the real case,
+
+$$
+f(x) = \sum_{n = -\infty}^\infty \big(a_n \sin(2\pi n x) + b_n \cos(2 \pi n x)\big), \qquad a_n, b_n \in \mathbb{R}
+$$
+
+For the complex generalization, we can write even more concisely
+
+$$
+f(x) = \sum_{n = -\infty}^\infty c_n e^{2\pi i n x}, \qquad c_n \in \mathbb{C}
+$$
+
+The reason you can do this is as follows.
+
+We know by Euler's identity
+
+$$
+e^{2\pi i n x} = \cos(2\pi n x) + i \sin(2 \pi n x)
+$$
+
+You can show by expanding each Euler identity that
+
+- $\cos(2\pi n x) = \dfrac{e^{2\pi i n x} + e^{-2 \pi i nx}}{2}$
+- $\sin(2\pi n x) = \dfrac{e^{2\pi i n x} - e^{-2 \pi i nx}}{2i}$
+
+Substitute those in:
+
+$$
+e^{2\pi i n x} = \frac{e^{2\pi i n x} + e^{-2 \pi i nx}}{2} + \frac{e^{2\pi i n x} - e^{-2 \pi i nx}}{2i}
+$$
+
+We can interpret this as one coefficient attached to $e^{2\pi i n x}$ and another attached to $e^{-2\pi i n x}$. The latter coefficient is absorbed into the $-n$'th index of the summation, so we see indeed the real case does fit into the complex form.
+
+<Theorem label="Exercise">
+$\{e^{2\pi in x}\}_{n = -\infty}^{\infty}$ is an orthonormal set.
+</Theorem>
+
+---
+
+## Fourier Transform and Poisson Summation Formula
+
+The idea of the Fourier transform is it helps construct the coefficients $c_n$ of the trigonometric functions which form the "basis".
+
+Take continuous $h(x)$ with *compact* support $\{x \in \mathbb{R} \,|\, h(x) \neq 0\} \subset [a,b]$.
+
+(or more generally, any $h(x)$ in a [Schwartz space](#schwartz-space))
+
+Define
+
+$$
+f(x) = \sum_{m = -\infty}^\infty h(x+m) \in C([0,1])
+$$
+
+What we find is the coefficients of the trigonometric function are the Fourier transform.
+
+$$
+\begin{aligned}
+f(x) &= \sum_{n = -\infty}^\infty c_n e^{2\pi i n x} \\
+&= \sum_{n=-\infty}^{\infty} \hat{h}(n)\, e^{2\pi in x}
+\end{aligned}
+$$
+
+where $\hat{h}(n) = \int_{-\infty}^{\infty}h(x)\, e^{-2\pi inx}\,dx$, or the Fourier transform of $h(x)$.
+
+To solve for the coefficient $c_n$, we recognize that $e^{2\pi inx}$ lives in the orthonormal basis. This means if we take the inner product with it on both sides:
+
+$$
+\begin{aligned}
+\langle f(x), e^{2\pi inx} \rangle &= \left\langle\sum_{n = -\infty}^\infty c_n  e^{2\pi i n x}, e^{2\pi i nx}\right\rangle \\
+&= c_n\langle e^{2\pi inx} , e^{2\pi inx}\rangle \\
+&= c_n
+\end{aligned}
+$$
+
+These transformations happen because for every $n$ (let's call it $y$) that is different from the $n$ in $e^{2\pi in x}$, $\langle e^{2\pi inx}, e^{2\pi i yx} \rangle = 0$ since they are different elements in an orthonormal set (key piece, orthogonal). On the other hand, $\langle e^{2\pi inx}, e^{2\pi i nx} \rangle = 1$ (key piece, normal).
+
+So
+
+$$
+\begin{aligned}
+c_n &= \langle f, e^{2\pi i nx} \rangle \\
+&= \int_0^1 f(x) \overline{e^{2\pi i nx}}\,dx \\
+&= \int_0^1 \sum_{m = -\infty}^\infty h(x + m)\, e^{-2\pi in x}\, dx
+\end{aligned}
+$$
+
+Recall $f(x)$ is defined as $\sum_{m = -\infty}^\infty h(x + m)$:
+
+$$
+= \sum_{m = -\infty}^\infty \int_0^1 h(x + m)\, e^{-2\pi i nx}\, dx
+$$
+
+Let's perform a variable substitution:
+
+- $t = x+ m \implies x = t-m$
+- $dx = dt$
+
+$$
+= \sum_{m=-\infty}^\infty \int_m^{m+1} h(t)\, e^{-2\pi in (t-m)}\,dt
+$$
+
+Notice, this is just
+
+$$
+= \int_{-\infty}^{\infty} h(t)\, e^{-2\pi in (t-m)}\,dt
+$$
+
+which is the Fourier transform of $h$!
+
+### Poisson Summation Formula
+
+Notice, our result is:
+
+$$
+\sum_{n= - \infty}^{\infty} h(x+n) = \sum_{n = -\infty}^\infty \hat{h}(n)\, e^{2\pi inx}
+$$
+
+Take $x=0$:
+
+$$
+\sum_{n= - \infty}^{\infty} h(n) = \sum_{n = -\infty}^\infty \hat{h}(n)
+$$
+
+So summing the Fourier transform tells us what summing the original function will get, obtaining what we call the *average* (kind of like but not like your traditional average) here.
+
+---
+
+## Application: Proving Equidistribution of Points
+
+A classic problem is proving that points are equally distributed on some interval.
+
+Suppose you have a sequence of points
+
+$$
+\{a_n\}_{n=1}^\infty
+$$
+
+and you want to show they are equally distributed on $[0,1]$.
+
+To do that, you count the number of points that lie in a certain interval $[a,b]$ that are indexed below a certain finite value $x$ (so we don't count infinite points).
+
+$$
+\#\{a_n \in [a,b]\,|\, n \le x\}
+$$
+
+Meaning we count $a_1,a_2,\dots,a_x$ and find how many values lie in $[a,b]$.
+
+Then we divide this by $x$, to find the density of points indexed $1$ through $x$ which actually lay in that interval.
+
+$$
+\frac{\#\{a_n \in [a,b]\,|\, n \le x\}}{x}
+$$
+
+This ratio should be equivalent to
+
+$$
+\frac{|b-a|}{1},
+$$
+
+the ratio of size of the small interval $[a,b]$ to the larger space $[0,1]$, as $x$ approaches infinity, if points are truly equidistant.
+
+Now if we apply some function
+
+$$
+f: [0,1] \to \mathbb{R}
+$$
+
+We see
+
+$$
+\lim_{x \to \infty}\sum_{n \le x}f(a_n) \approx \int f(x)\,dx
+$$
+
+since each point acts as a small slice, and as the slice collection grows it finds the area.
+
+The problem is, the left-hand side is often hard to compute. But we know by the Poisson summation formula
+
+$$
+\sum_{n = -\infty}^\infty f(a_n) = \sum_{n = -\infty}^\infty \hat{f}(a_n)
+$$
+
+where $\hat{f}$ is the Fourier transform, and that is often easier to solve.
+
+---
+
+## Appendix
+
+In case you don't know:
+
+### Vector Space
+
+This requires some basic abstract algebra knowledge. If you don't know what a field is, you can look it up or refer to one of my (possible) future notes if I make an abstract algebra writeup. Otherwise, for now think of it as a set equipped with two operations, addition and multiplication, with some cool inherent properties.
+
+<Definition title="Vector Space">
+Let $F$ be a field. A vector space over $F$ is a set $V$ together with two operations:
+
+1. Vector addition: $V \times V \to V$, written $u + v$
+2. Scalar multiplication: $F \times V \to V$, written $av$
+
+such that for all $u,v,w \in V$ and all $a,b \in F$, the following axioms hold:
+
+*Additive Axioms:*
+
+1. Associativity
+2. Commutativity
+3. Zero vector
+4. Additive inverse
+
+*Scalar Multiplication Axioms:*
+
+1. Distributivity over vectors: $a(u+v) = au + av$
+2. Distributivity over scalars: $(a+b)v = av + bv$
+3. Compatibility with field multiplication: $a(bv) = (ab)v$
+4. Identity element: $1v = v$ (where $1$ is the multiplicative identity in $F$)
+</Definition>
+
+### Orthonormal Basis
+
+<Definition title="Orthonormal Basis">
+Let $\langle \cdot , \cdot \rangle$ be the inner product defined on the vector space $V$. An *orthonormal basis* is a set of elements in the vector space (e.g. $\{f,g,h\}$, $f,g,h \in V$) that satisfies:
+
+- *Orthogonality*: $\langle f,g \rangle = 0$
+- *Normality*: $\langle f,f \rangle = 1$
+</Definition>
+
+### Inner Product
+
+<Definition title="Inner Product">
+An *inner product* on a vector space $V$ is a function
+
+$$
+\langle \cdot, \cdot \rangle: V \times V \to \mathbb{R}\ (\text{or }\mathbb{C})
+$$
+
+that takes two vectors and returns a scalar. It must satisfy the following properties for all $u,v,w \in V$ and all scalars $a$:
+
+- *Linearity*: $\langle au + v, w \rangle = a\langle u,w \rangle + \langle v, w\rangle$
+- *Symmetry*: $\langle u,v \rangle = \langle v,u \rangle$
+- *Positive Definiteness*: $\langle v,v \rangle \ge 0$, with equality if and only if $v = 0$
+
+The *norm* or length of a vector is then defined by
+
+$$
+\|v\| = \sqrt{\langle v,v \rangle}
+$$
+</Definition>
+
+### Schwartz Space
+
+Roughly speaking, it's the space of all functions $f$ where $f(x) \to 0$ rapidly as $x \to \pm \infty$.
