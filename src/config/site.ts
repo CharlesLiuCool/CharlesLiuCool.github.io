@@ -6,10 +6,10 @@
 
 export const SITE = {
   name:        'Charles Liu',
-  role:        'researcher',
+  role:        'undergraduate',
   taglines: [
     'cryptography',
-    'student researcher',
+    'undergraduate',
     `birdwatching enthusiast`,
     'computer science & math',
     'chess player',

@@ -16,6 +16,17 @@ summary: "From Weierstrass's density theorem to Fourier series, the Fourier tran
 import Definition from '../../components/research/Definition.astro';
 import Theorem from '../../components/research/Theorem.astro';
 import Callout from '../../components/research/Callout.astro';
+import Plot from '../../components/research/Plot.astro';
+
+export const rf = (x) => 0.25 + 0.6 * Math.sin(Math.PI * x);
+export const uniformRects = Array.from({ length: 8 }, (_, i) => {
+  const c = (i + 0.5) / 8;
+  return { x: [i / 8, (i + 1) / 8], y: [0, rf(c)], color: 'positive' };
+});
+export const uniformPts = Array.from({ length: 8 }, (_, i) => ({ x: (i + 0.5) / 8, y: 0, color: 'positive' }));
+export const clumpCenters = [0.06, 0.12, 0.18, 0.25, 0.35, 0.5, 0.72, 0.93];
+export const clumpRects = clumpCenters.map((c) => ({ x: [c - 0.0625, c + 0.0625], y: [0, rf(c)], color: 'caution' }));
+export const clumpPts = clumpCenters.map((c) => ({ x: c, y: 0, color: 'caution' }));
 
 ## Problem Statement
 
@@ -38,6 +49,17 @@ C([0,1]) = \{f: [0,1] \to \mathbb{R} \text{ that is continuous}\}
 $$
 
 is a vector space.
+
+<Plot
+  domain={[0, 1]}
+  curves={[
+    { fn: (x) => 0.5 + 0.32 * Math.sin(2 * Math.PI * x) + 0.12 * Math.sin(6 * Math.PI * x + 1) - 0.15 * x, label: 'f(x)', color: 'accent' },
+  ]}
+  xLabel="x"
+  yLabel="f(x)"
+  xTicks={[0, 0.25, 0.5, 0.75, 1]}
+  captionTex="\text{A continuous function } f \in C([0,1]) \text{ — no jumps or breaks anywhere on } [0,1]."
+/>
 
 <Theorem label="Exercise">
 $C([0,1])$ is a [vector space](#vector-space) over $\mathbb{R}$.
@@ -256,13 +278,85 @@ $$
 
 and you want to show they are equally distributed on $[0,1]$.
 
-To do that, you count the number of points that lie in a certain interval $[a,b]$ that are indexed below a certain finite value $x$ (so we don't count infinite points).
+Intuitively, *equally distributed* means the points spread evenly across the interval — every subinterval of the same width gets its fair share. Compare the two cases below:
+
+<Plot
+  domain={[0, 1]}
+  range={[-1, 1]}
+  yTicks={[]}
+  xTicks={[0, 0.25, 0.5, 0.75, 1]}
+  points={[
+    { x: 0.05, y: 0, color: 'positive' },
+    { x: 0.15, y: 0, color: 'positive' },
+    { x: 0.25, y: 0, color: 'positive' },
+    { x: 0.35, y: 0, color: 'positive' },
+    { x: 0.45, y: 0, color: 'positive' },
+    { x: 0.55, y: 0, color: 'positive' },
+    { x: 0.65, y: 0, color: 'positive' },
+    { x: 0.75, y: 0, color: 'positive' },
+    { x: 0.85, y: 0, color: 'positive' },
+    { x: 0.95, y: 0, color: 'positive' },
+  ]}
+  captionTex="\text{Equally distributed — every subinterval gets its fair share of points.}"
+/>
+
+<Plot
+  domain={[0, 1]}
+  range={[-1, 1]}
+  yTicks={[]}
+  xTicks={[0, 0.25, 0.5, 0.75, 1]}
+  points={[
+    { x: 0.02, y: 0, color: 'negative' },
+    { x: 0.05, y: 0, color: 'negative' },
+    { x: 0.08, y: 0, color: 'negative' },
+    { x: 0.11, y: 0, color: 'negative' },
+    { x: 0.15, y: 0, color: 'negative' },
+    { x: 0.19, y: 0, color: 'negative' },
+    { x: 0.24, y: 0, color: 'negative' },
+    { x: 0.31, y: 0, color: 'negative' },
+    { x: 0.62, y: 0, color: 'negative' },
+    { x: 0.97, y: 0, color: 'negative' },
+  ]}
+  captionTex="\text{Not equally distributed — points clump near } 0 \text{ and leave large gaps.}"
+/>
+
+To make this precise, you count the number of points that lie in a certain interval $[a,b]$ that are indexed below a certain finite value $x$ (so we don't count infinite points).
 
 $$
 \#\{a_n \in [a,b]\,|\, n \le x\}
 $$
 
 Meaning we count $a_1,a_2,\dots,a_x$ and find how many values lie in $[a,b]$.
+
+For example, take the arbitrary subinterval $[a,b] = [0.3, 0.6]$. Of the enumerated points below, exactly three — $a_4, a_5, a_6$ — fall inside it, so $\#\{a_n \in [a,b]\} = 3$ here.
+
+<Plot
+  domain={[0, 1]}
+  range={[-0.5, 0.5]}
+  yTicks={[]}
+  xTicks={[0, 0.3, 0.6, 1]}
+  bands={[
+    { x: [0.3, 0.6], y: [-0.16, 0.16], color: 'accent', labelTex: '[a,b]' },
+  ]}
+  labels={[
+    { x: 0.35, y: 0.32, text: '1', color: 'positive', size: 24 },
+    { x: 0.45, y: 0.32, text: '2', color: 'positive', size: 24 },
+    { x: 0.55, y: 0.32, text: '3', color: 'positive', size: 24 },
+  ]}
+  points={[
+    { x: 0.05, y: 0, labelTex: 'a_1', color: 'muted' },
+    { x: 0.15, y: 0, labelTex: 'a_2', color: 'muted' },
+    { x: 0.25, y: 0, labelTex: 'a_3', color: 'muted' },
+    { x: 0.35, y: 0, labelTex: 'a_4', color: 'positive' },
+    { x: 0.45, y: 0, labelTex: 'a_5', color: 'positive' },
+    { x: 0.55, y: 0, labelTex: 'a_6', color: 'positive' },
+    { x: 0.65, y: 0, labelTex: 'a_7', color: 'muted' },
+    { x: 0.75, y: 0, labelTex: 'a_8', color: 'muted' },
+    { x: 0.85, y: 0, labelTex: 'a_9', color: 'muted' },
+    { x: 0.95, y: 0, labelTex: 'a_{10}', color: 'muted' },
+  ]}
+  captionTex="\text{Counting } \#\{a_n \in [a,b]\} \text{ for } [a,b] = [0.3, 0.6] \text{: three points } (a_4, a_5, a_6) \text{ land inside the highlighted box.}"
+/>
 
 Then we divide this by $x$, to find the density of points indexed $1$ through $x$ which actually lay in that interval.
 
@@ -291,6 +385,32 @@ $$
 $$
 
 If this holds, then the function is equally distributed. Each point, if uniformly distributed across the interval, properly builds Riemann rectangles and slices which form the integral. If it was not equally distributed, then a slice might be double counted or missed.
+
+To see why, give every sample $a_n$ the same width $\tfrac{1}{N}$ — its fair share of $[0,1]$ — and height $f(a_n)$. When the points are uniform, those rectangles tile the interval exactly once, and their tops trace out $f$, so the slices reassemble the area under the curve:
+
+<Plot
+  domain={[0, 1]}
+  range={[0, 1]}
+  yTicks={[]}
+  xTicks={[0, 0.5, 1]}
+  curves={[{ fn: rf, label: 'f', color: 'accent' }]}
+  bands={uniformRects}
+  points={uniformPts}
+  captionTex="\text{Uniform } a_n\text{: equal-width rectangles tile } [0,1] \text{ once and their tops trace } f\text{, so } \tfrac{1}{N}\textstyle\sum_n f(a_n) \to \int_0^1 f."
+/>
+
+When the points clump, each rectangle still claims width $\tfrac{1}{N}$, but the crowded region stacks overlapping slices (that area is **counted several times**, shown by the darker overlaps) while the sparse region is left with **gaps** (that area is missed entirely). The rectangles no longer match the region under $f$, so the sum drifts away from the integral:
+
+<Plot
+  domain={[0, 1]}
+  range={[0, 1]}
+  yTicks={[]}
+  xTicks={[0, 0.5, 1]}
+  curves={[{ fn: rf, label: 'f', color: 'accent' }]}
+  bands={clumpRects}
+  points={clumpPts}
+  captionTex="\text{Clustered } a_n\text{: slices overlap on the left (over-counted) and leave gaps on the right (missed), so the sum no longer equals } \int_0^1 f."
+/>
 
 The problem is, the left-hand side is often hard to compute. But we know by the Poisson summation formula
 
@@ -367,3 +487,15 @@ $$
 ### Schwartz Space
 
 Roughly speaking, it's the space of all functions $f$ where $f(x) \to 0$ rapidly as $x \to \pm \infty$.
+
+The canonical example is the Gaussian $f(x) = e^{-x^2}$: it and all of its derivatives decay faster than any polynomial grows, so it dies off rapidly in both directions.
+
+<Plot
+  domain={[-3, 3]}
+  curves={[
+    { fn: (x) => Math.exp(-x * x), label: 'e^{-x^2}', color: 'accent' },
+  ]}
+  xLabel="x"
+  yLabel="f(x)"
+  captionTex="\text{The Gaussian } e^{-x^2} \in \mathcal{S}(\mathbb{R}) \text{ — it decays to } 0 \text{ rapidly as } x \to \pm\infty."
+/>

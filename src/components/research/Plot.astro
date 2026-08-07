@@ -55,6 +55,21 @@ interface Point {
   color?: string;
   open?: boolean;      // hollow marker
 }
+interface Band {
+  x: [number, number];       // x-interval to highlight
+  y?: [number, number];      // y-extent (full plot height if omitted)
+  color?: string;            // token name — see COLORS
+  label?: string;            // plain text, centred below the band
+  labelTex?: string;         // KaTeX
+}
+interface FloatLabel {
+  x: number;
+  y: number;
+  text?: string;             // plain text
+  tex?: string;              // KaTeX
+  color?: string;            // token name — see COLORS
+  size?: number;             // font size in px (default 16)
+}
 interface Props {
   domain: [number, number];
   range?: [number, number];
@@ -64,6 +79,8 @@ interface Props {
   grid?: boolean;
   curves?: Curve[];
   points?: Point[];
+  bands?: Band[];
+  labels?: FloatLabel[];
   xLabel?: string;
   yLabel?: string;
   xTicks?: number[];
@@ -81,6 +98,8 @@ const {
   grid = true,
   curves = [],
   points = [],
+  bands = [],
+  labels = [],
   xLabel,
   yLabel,
   xTicks,
@@ -139,10 +158,10 @@ if (range) {
 }
 
 // ── Layout / padding ──
-const padL = yLabel ? 52 : 42;
+const padL = yLabel ? 72 : 46;
 const padR = 18;
 const padT = 16;
-const padB = xLabel ? 44 : 32;
+const padB = xLabel ? 66 : 34;
 const plotW = width - padL - padR;
 const plotH = height - padT - padB;
 
@@ -220,6 +239,37 @@ const legend = curves.filter((c) => c.label);
       x={padL} y={padT} width={plotW} height={plotH}
     />
 
+    <!-- highlight bands -->
+    {bands.map((b, i) => {
+      const bx0 = sx(Math.max(b.x[0], xmin));
+      const bx1 = sx(Math.min(b.x[1], xmax));
+      const [ylo, yhi] = b.y ?? [ymin, ymax];
+      const byTop = sy(Math.max(ylo, yhi));
+      const byBot = sy(Math.min(ylo, yhi));
+      const c = col(b.color, i);
+      return (
+        <g class="plot__band">
+          <rect
+            x={bx0}
+            y={byTop}
+            width={Math.max(0, bx1 - bx0)}
+            height={Math.max(0, byBot - byTop)}
+            rx="3"
+            fill={c}
+            fill-opacity="0.12"
+            stroke={c}
+            stroke-opacity="0.85"
+            stroke-width="1.5"
+          />
+          {(b.label || b.labelTex) && (
+            <foreignObject x={(bx0 + bx1) / 2 - 70} y={byBot + 4} width="140" height="28" style="overflow: visible;">
+              <span class="plot__bandlabel" set:html={b.labelTex ? tex(b.labelTex) : b.label} />
+            </foreignObject>
+          )}
+        </g>
+      );
+    })}
+
     <!-- zero axes -->
     {axisY0 !== null && (
       <line class="plot__axis" x1={padL} y1={axisY0} x2={padL + plotW} y2={axisY0} />
@@ -258,6 +308,7 @@ const legend = curves.filter((c) => c.label);
     <!-- points -->
     {points.map((p, i) => (
       <g class="plot__point">
+        <circle cx={sx(p.x)} cy={sy(p.y)} r="6.5" fill="var(--bg-card)" />
         <circle
           cx={sx(p.x)}
           cy={sy(p.y)}
@@ -279,20 +330,46 @@ const legend = curves.filter((c) => c.label);
       </g>
     ))}
 
+    <!-- floating labels (on top) -->
+    {labels.map((l, i) => {
+      const fs = l.size ?? 16;
+      return (
+        <foreignObject
+          x={sx(l.x) - 40}
+          y={sy(l.y) - (fs + 10) / 2}
+          width="80"
+          height={fs + 10}
+          style="overflow: visible;"
+        >
+          <span
+            class="plot__flabel"
+            style={`--fc:${col(l.color, i)}; font-size:${fs}px`}
+            set:html={l.tex ? tex(l.tex) : l.text}
+          />
+        </foreignObject>
+      );
+    })}
+
     <!-- axis labels -->
     {xLabel && (
-      <foreignObject x={padL + plotW / 2 - 60} y={height - 22} width="120" height="20">
+      <foreignObject
+        x={padL + plotW / 2 - 70}
+        y={height - 26}
+        width="140"
+        height="24"
+        style="overflow: visible;"
+      >
         <span class="plot__axislabel" set:html={tex(xLabel)} />
       </foreignObject>
     )}
     {yLabel && (
       <foreignObject
-        x={-(padT + plotH / 2) - 60}
-        y="2"
-        width="120"
-        height="20"
+        x={-(padT + plotH / 2) - 70}
+        y="4"
+        width="140"
+        height="24"
         transform="rotate(-90)"
-        style="transform-box: view-box;"
+        style="transform-box: view-box; transform-origin: 0 0; overflow: visible;"
       >
         <span class="plot__axislabel" set:html={tex(yLabel)} />
       </foreignObject>
@@ -355,6 +432,22 @@ const legend = curves.filter((c) => c.label);
     text-align: center;
     font-size: var(--text-sm);
     color: var(--text-secondary);
+  }
+  .plot__bandlabel {
+    display: inline-block;
+    width: 140px;
+    text-align: center;
+    font-size: var(--text-xs);
+    color: var(--text-muted);
+    line-height: 1;
+  }
+  .plot__flabel {
+    display: inline-block;
+    width: 80px;
+    text-align: center;
+    color: var(--fc);
+    font-weight: 700;
+    line-height: 1;
   }
 
   .plot__legend {
