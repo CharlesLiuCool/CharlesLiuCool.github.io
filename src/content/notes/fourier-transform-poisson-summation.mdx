@@ -53,12 +53,18 @@ is a vector space.
 <Plot
   domain={[0, 1]}
   curves={[
-    { fn: (x) => 0.5 + 0.32 * Math.sin(2 * Math.PI * x) + 0.12 * Math.sin(6 * Math.PI * x + 1) - 0.15 * x, label: 'f(x)', color: 'accent' },
+    { fn: (x) => 0.8 + 0.3 * Math.sin(2 * Math.PI * x) - 0.9 * Math.abs(x - 0.25), label: 'f(x)', color: 'accent' },
+  ]}
+  points={[
+    { x: 0.25, y: 1.1, color: 'caution' },
+  ]}
+  labels={[
+    { x: 0.42, y: 1.04, tex: '\\text{corner}', color: 'caution', size: 14 },
   ]}
   xLabel="x"
   yLabel="f(x)"
   xTicks={[0, 0.25, 0.5, 0.75, 1]}
-  captionTex="\text{A continuous function } f \in C([0,1]) \text{ — no jumps or breaks anywhere on } [0,1]."
+  captionTex="\text{A continuous function } f \in C([0,1]). \text{ Continuity is all we ask for: this } f \text{ has a corner at } x = \tfrac14, \text{ so } f'(\tfrac14) \text{ does not exist and Taylor series never gets started.}"
 />
 
 <Theorem label="Exercise">
