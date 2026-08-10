@@ -1,0 +1,270 @@
+---
+title: "IP = PSPACE"
+date: "2026-08-07"
+tags:
+  [
+    "complexity-theory",
+    "interactive-proofs",
+    "gkr",
+    "pspace",
+    "shamir",
+    "repeated-squaring",
+  ]
+summary: "Shamir's theorem says every polynomial-space computation has an interactive proof. A modern route: view a PSPACE computation as one entry of a huge matrix power, compute that power by repeated squaring, read the recursion off as a layered arithmetic circuit of depth O(S) and size 2^O(S), and run GKR on it."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Callout from '../../components/research/Callout.astro';
+import Flow from '../../components/research/Flow.astro';
+
+## Background
+
+Recall the two complexity classes.
+
+<Definition title="Interactive Polynomial Time (IP)">
+Languages with an interactive proof system consisting of
+
+- an **unbounded** prover,
+- a **polynomial-time** verifier.
+</Definition>
+
+<Definition title="Polynomial Space (PSPACE)">
+Languages decidable by a Turing machine using only polynomial space.
+</Definition>
+
+The inclusion
+
+$$
+\mathsf{IP} \subseteq \mathsf{PSPACE}
+$$
+
+is relatively straightforward: a polynomial-space machine can recursively simulate every possible interaction between the prover and the verifier. PSPACE has unlimited *time*, and although the IP prover is unbounded, prover and verifier only exchange **polynomially many bits**. So the whole interaction tree fits in polynomial space.
+
+The difficult direction is
+
+$$
+\mathsf{PSPACE} \subseteq \mathsf{IP}.
+$$
+
+<Theorem title="Shamir (1992)">
+$$
+\mathsf{IP} = \mathsf{PSPACE}.
+$$
+
+Every polynomial-space computation has an interactive proof.
+</Theorem>
+
+The original proof arithmetizes a Turing machine computation directly and drives it with the [sum-check protocol](/notes/interactive-proofs-sum-check).
+
+---
+
+## A Modern Perspective via GKR
+
+The [GKR protocol](/notes/gkr-protocol) gives another proof of the hard direction.
+
+<Theorem>
+GKR implies
+
+$$
+\mathsf{PSPACE} \subseteq \mathsf{IP},
+$$
+
+assuming the prover is allowed to run in $\mathrm{poly}(2^S)$ time, where $S$ is the space bound of the computation.
+</Theorem>
+
+Combining this with $\mathsf{IP} \subseteq \mathsf{PSPACE}$ immediately gives
+
+$$
+\boxed{\;\mathsf{IP} = \mathsf{PSPACE}.\;}
+$$
+
+<Callout type="question" title="Open question">
+Suppose a computation runs in time $T$ and space $S$. Can every such computation admit an interactive proof whose prover runs in $\mathrm{poly}(T)$ time?
+</Callout>
+
+Note the gap this question is pointing at: the construction below gives a prover running in $\mathrm{poly}(2^S)$, which is only $\mathrm{poly}(T)$ when $T$ is itself near $2^S$. For a computation that uses a lot of space but finishes quickly, the prover we build is wildly more expensive than the computation it is proving.
+
+---
+
+## Representing a PSPACE Computation
+
+Suppose
+
+- $M$ is a deterministic Turing machine,
+- $M$ uses at most $S$ tape cells,
+- $M$ runs for at most $T = 2^S$ steps.
+
+Since the machine only has $S$ bits of working memory, there are only
+
+$$
+N = 2^{O(S)}
+$$
+
+possible **configurations**. A configuration completely determines the current state of the computation:
+
+- the tape contents,
+- the head position,
+- the current state,
+- anything else needed to resume execution.
+
+Because a configuration is *everything*, the entire computation is a directed graph:
+
+- each vertex is a configuration,
+- each edge is one valid transition of the Turing machine.
+
+The machine accepts iff there is a path from the **start configuration** to the **accepting configuration**.
+
+<Callout type="note" title="Why the time bound is free">
+A deterministic machine that runs longer than $N$ steps must repeat a configuration, and since the next configuration is a function of the current one, it then loops forever. So $T = 2^{O(S)}$ is not an extra assumption — it is forced, up to rejecting looping computations.
+</Callout>
+
+---
+
+## Encoding the Configuration Graph
+
+Number the configurations $C_1, \ldots, C_N$ and build the adjacency matrix $A \in \{0,1\}^{N \times N}$,
+
+$$
+A_{ij} =
+\begin{cases}
+1, & C_i \rightarrow C_j, \\
+0, & \text{otherwise.}
+\end{cases}
+$$
+
+Since the machine is deterministic,
+
+- every row contains at most one $1$,
+- every configuration has at most one successor.
+
+The computation is now a question about this matrix.
+
+### Why matrix powers matter
+
+A fundamental fact from linear algebra:
+
+$$
+(A^2)_{ij} = \sum_k A_{ik} A_{kj}.
+$$
+
+Every summand contributes $1$ exactly when there is a path
+
+$$
+C_i \rightarrow C_k \rightarrow C_j,
+$$
+
+so $(A^2)_{ij}$ counts the paths of length $2$. Repeating the argument,
+
+$$
+(A^t)_{ij} = \#\{\text{paths of length } t \text{ from } C_i \text{ to } C_j\}.
+$$
+
+Determinism means there is at most one such path, so $(A^T)_{ij} \in \{0,1\}$, and in particular
+
+$$
+(A^T)_{\mathrm{start},\,\mathrm{accept}} = 1
+\iff
+M \text{ accepts.}
+$$
+
+<Callout type="tip" title="Key idea">
+The PSPACE computation has been reduced to computing **one entry of a large matrix power**.
+</Callout>
+
+---
+
+## The Problem, and Repeated Squaring
+
+The matrix $A$ has dimension $2^{O(S)} \times 2^{O(S)}$, so computing $A^T$ directly is impossible — even *storing* $A$ takes exponential space. (We never actually write $A$ down: any entry $A_{ij}$ is computable on the fly from the transition function, since deciding $C_i \rightarrow C_j$ just means simulating one step.)
+
+Instead, use the identity
+
+$$
+A^T = \left(A^{T/2}\right)^2,
+$$
+
+which halves the exponent at every step. For example,
+
+$$
+A^{16} = \left(\left(\left(A^2\right)^2\right)^2\right)^2.
+$$
+
+Instead of $T$ matrix multiplications we perform only
+
+$$
+O(\log T) = O(S)
+$$
+
+recursive squaring steps. This divide-and-conquer structure is exactly what gives a **logarithmic-depth** circuit.
+
+<Flow
+  layers={[
+    { nodes: [{ label: 'Configuration graph', sub: 'N = 2^{O(S)} vertices', variant: 'store' }] },
+    { nodes: [{ label: 'Adjacency matrix', subTex: 'A \\in \\{0,1\\}^{N \\times N}' }] },
+    { group: 'O(log T) = O(S) squarings', nodes: [{ label: 'Repeated squaring', subTex: 'A^T = (A^{T/2})^2' }] },
+    { nodes: [{ label: 'Layered arithmetic circuit', sub: 'depth O(S), size 2^{O(S)}' }] },
+    { nodes: [{ label: 'GKR', sub: 'layer-by-layer sum-checks', variant: 'accent' }] },
+    { nodes: [{ label: 'Interactive proof', subTex: '(A^T)_{\\mathrm{start},\\mathrm{accept}} = 1', variant: 'accent' }] },
+  ]}
+/>
+
+---
+
+## Converting Repeated Squaring into a Circuit
+
+Each recursive squaring step computes $X^2 = X \cdot X$, where
+
+$$
+(XY)_{ij} = \sum_k X_{ik} Y_{kj}.
+$$
+
+Each entry is therefore
+
+1. $N$ multiplications,
+2. followed by an $N$-term sum,
+
+which is directly implementable as a layer of an arithmetic circuit: a layer of multiplication gates feeding a fan-in tree of addition gates.
+
+The recursion tree has depth $O(\log T) = O(S)$, and every level performs polynomially many operations in the matrix size. Since $N = 2^{O(S)}$, the resulting circuit has
+
+- **Depth:** $O(S)$,
+- **Size:** $2^{O(S)}$,
+
+and its output is precisely
+
+$$
+(A^T)_{\mathrm{start},\,\mathrm{accept}}.
+$$
+
+<Callout type="note" title="Depth is what we are buying">
+Naively simulating $T = 2^S$ steps gives a circuit of depth $T$ — exponential, and useless for GKR, whose costs scale with depth. Repeated squaring trades depth for width: the circuit gets no smaller (it is still $2^{O(S)}$ gates), but its depth collapses from $2^S$ to $O(S)$. GKR's verifier pays for depth, not size, which is exactly why this reshaping is the whole trick.
+</Callout>
+
+---
+
+## Applying GKR
+
+GKR gives an interactive proof for evaluating a layered arithmetic circuit. Since repeated squaring produces a layered circuit of depth $O(S)$ and size $2^{O(S)}$, we can apply it directly.
+
+Instead of verifying every step of the Turing machine, the verifier only checks that every **layer** of the arithmetic circuit is evaluated correctly. Using GKR's recursive layer-to-layer reductions — each one a sum-check, followed by the line reduction that collapses two evaluation claims into one — the verifier eventually reduces the output claim to a claim about the circuit **inputs**, which are entries of $A$ it can compute itself.
+
+Counting the costs:
+
+- **Verifier time:** $\mathrm{poly}(S) = \mathrm{polylog}(N)$ per layer, over $O(S)$ layers — polynomial in $S$, hence polynomial in the original input size.
+- **Prover time:** $\mathrm{poly}(2^S)$, i.e. polynomial in the circuit size — unbounded is fine, but this is the quantity the open question above wants to shrink to $\mathrm{poly}(T)$.
+- **Wiring predicates:** the circuit's structure is fixed and highly regular (it is the same matrix-multiplication pattern at every level), so it is logspace uniform in the relevant sense and the verifier can evaluate $\widetilde{\mathrm{add}}$ and $\widetilde{\mathrm{mult}}$ on demand.
+
+Therefore every PSPACE computation admits an interactive proof:
+
+$$
+\mathsf{PSPACE} \subseteq \mathsf{IP}.
+$$
+
+<Callout type="tip" title="The shape of the argument">
+1. A PSPACE computation is a path in a $2^{O(S)}$-vertex configuration graph.
+2. Path existence is one entry of $A^T$.
+3. $A^T$ is computed by $O(S)$ repeated squarings.
+4. That recursion *is* a layered arithmetic circuit of depth $O(S)$.
+5. GKR verifies layered circuits with a verifier paying for depth, not size.
+</Callout>
