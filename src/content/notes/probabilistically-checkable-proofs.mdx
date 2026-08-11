@@ -1,0 +1,490 @@
+---
+title: "Probabilistically Checkable Proofs"
+date: "2026-08-10"
+tags:
+  [
+    "complexity-theory",
+    "interactive-proofs",
+    "pcp",
+    "gkr",
+    "low-degree-testing",
+    "succinct-arguments",
+  ]
+summary: "A proof you can check by reading a handful of symbols. The definition of PCP, why the verifier is non-adaptive, and a full construction from GKR — write the whole public-coin transcript tree down as a string, query one path through it, and close the last gap with a low-degree test plus self-correction."
+---
+
+import Definition from '../../components/research/Definition.astro';
+import Theorem from '../../components/research/Theorem.astro';
+import Lemma from '../../components/research/Lemma.astro';
+import Proof from '../../components/research/Proof.astro';
+import Callout from '../../components/research/Callout.astro';
+import Flow from '../../components/research/Flow.astro';
+
+## Overview
+
+This note does three things:
+
+- defines the class $\mathsf{PCP}_{c,s}[r,q]$ and explains the shape of its verifier;
+- builds a PCP for $\mathsf{NP}$ out of the [GKR protocol](/notes/gkr-protocol), by writing the entire public-coin transcript tree down as one long string;
+- fills the gap that construction leaves open — the oracle must be *forced* to be a low-degree polynomial, which is what **low-degree testing** and **self-correction** buy us.
+
+It closes by pointing at where this goes: once soundness is relaxed from statistical to **computational**, a PCP plus a Merkle tree becomes a succinct argument.
+
+---
+
+## From Classical Proofs to PCPs
+
+A classical $\mathsf{NP}$ proof is a pair
+
+$$
+(x, w),
+\qquad |x| = n,\quad |w| = m,
+$$
+
+with $x$ the statement and $w$ a witness. Verification means running a circuit on $(x,w)$ and checking membership in the relation $R$. Crucially, the verifier reads *all* of $w$ — if it skipped even one bit, a cheating prover could hide the flaw exactly there.
+
+The PCP idea is to give up on reading $w$ and instead re-encode it. We build a longer proof $\pi$, of length $\mathrm{poly}(n,m)$ or more, with the property that errors are no longer localizable: any $\pi$ that "should not" be accepted is wrong almost everywhere, so a few random spot-checks catch it.
+
+<Callout type="tip" title="Key idea">
+We do not need to read all of $\pi$. Reading a few locations — chosen at random, before seeing any of the proof — already tells us with good probability whether the statement is true.
+</Callout>
+
+The verifier still reads all of $x$; only access to $\pi$ is restricted. That asymmetry is what makes the model usable: $x$ is the thing we care about, $\pi$ is the thing that is enormous.
+
+---
+
+## The Definition
+
+<Definition title="PCP">
+$\mathsf{PCP}_{c,s}[r,q]$ is the class of languages $L$ for which there is a probabilistic polynomial-time oracle machine $V$ such that:
+
+**Completeness.** For all $x \in L$,
+
+$$
+\exists\, \pi \ \text{ such that } \ \Pr\big[V^{\pi}(x) = 1\big] \ge c.
+$$
+
+**Soundness.** For all $x \notin L$,
+
+$$
+\forall\, \pi^* ,\qquad \Pr\big[V^{\pi^*}(x) = 1\big] \le s.
+$$
+
+**Complexity.** On inputs of length $n$, $V$ uses at most $r(n)$ bits of randomness and makes at most $q(n)$ **non-adaptive** queries to the oracle.
+</Definition>
+
+The completeness parameter $c$ is *per statement*: a true $x$ has **some** proof that works, while a false $x$ has **no** proof that works — the quantifiers are what carry the content, not the constants.
+
+### The two-stage verifier
+
+Non-adaptivity is best seen by splitting the verifier into
+
+$$
+V = (V_1, V_2),
+$$
+
+where $V_1$ is randomized and $V_2$ is deterministic.
+
+**Stage 1 — choose all locations.** From the input and its coins alone, $V_1$ outputs every index it intends to read:
+
+$$
+V_1(x; \rho) \to i_1, \ldots, i_q \in [N],
+$$
+
+where $N = |\pi|$. Only then does it receive the answers
+
+$$
+\pi_{i_1}, \ldots, \pi_{i_q}.
+$$
+
+**Stage 2 — decide.** The deterministic
+
+$$
+V_2\big(x, i_1, \ldots, i_q, \pi_{i_1}, \ldots, \pi_{i_q}\big) \in \{0,1\}
+$$
+
+accepts or rejects.
+
+<Callout type="note" title="Why this is a real restriction">
+The indices $i_2, \ldots, i_q$ are fixed **before** any proof symbol is seen. An adaptive verifier could let $i_2$ depend on $\pi_{i_1}$ — which sounds strictly stronger, and looks more like a "conversation" with the prover. Non-adaptivity says the conversation is unnecessary: a fixed random pattern of spot-checks does the same job.
+</Callout>
+
+<Callout type="note" title="Yael Kalai">
+"There is no price for making PCPs non-adaptive."
+</Callout>
+
+Concretely: an adaptive verifier making $q$ queries can be simulated non-adaptively by reading all $2^q$ locations its decision tree could ever touch, which is a constant blow-up whenever $q = O(1)$. All the constructions below are natively non-adaptive anyway.
+
+### Randomness controls proof length
+
+<Callout type="tip" title="The $r \leftrightarrow N$ relation">
+A verifier that tosses $r$ coins has only $2^r$ possible query patterns, so it can ever touch at most
+
+$$
+N \le q \cdot 2^{r}
+$$
+
+distinct locations. Everything else in $\pi$ is dead weight and can be deleted. So $r$ *is* the proof-length parameter: $r = O(\log n)$ means polynomial-length proofs, $r = \mathrm{polylog}(n)$ means quasi-polynomial ones.
+</Callout>
+
+This also gives the easy direction of the PCP theorem. If $r = O(\log n)$ and $q = O(1)$, then $\pi$ has polynomial length, and a nondeterministic machine can guess $\pi$ and then *enumerate all $2^r = \mathrm{poly}(n)$ coin sequences*, checking each in polynomial time. So
+
+$$
+\mathsf{PCP}_{1,s}[O(\log n), O(1)] \subseteq \mathsf{NP}
+$$
+
+for any $s < 1$. Note this argument needs $r = O(\log n)$; with $r = \mathrm{polylog}(n)$ only the forward inclusion below is meaningful.
+
+---
+
+## The PCP Theorem
+
+<Theorem title="What we prove here">
+$$
+\mathsf{NP} \subseteq \mathsf{PCP}_{1,\,1/2}\big[\mathrm{polylog}(n),\ \mathrm{polylog}(n)\big].
+$$
+</Theorem>
+
+<Theorem title="PCP Theorem (Arora–Safra; Arora–Lund–Motwani–Sudan–Szegedy)">
+$$
+\mathsf{NP} = \mathsf{PCP}_{1,\,1/2}\big[O(\log n),\ O(1)\big].
+$$
+</Theorem>
+
+So every $\mathsf{NP}$ statement has a polynomial-length proof checkable by reading a *constant* number of symbols. Pushing on the constant:
+
+<Theorem title="Håstad">
+For every $\epsilon > 0$,
+
+$$
+\mathsf{NP} \subseteq \mathsf{PCP}_{1-\epsilon,\ 1/2+\epsilon}\big[O(\log n),\ 3\big].
+$$
+
+With **perfect** completeness the best possible soundness at $q = 3$ is $7/8$: a random assignment satisfies each $3$-clause with probability $7/8$, so no $3$-query test with $c = 1$ can have $s < 7/8$. Håstad's test meets that bound with $s = 7/8 + \epsilon$.
+</Theorem>
+
+Three bits. The $7/8$ is not a defect of the construction — it is the exact threshold, which is why the same theorem is the source of the optimal inapproximability of MAX-3SAT.
+
+---
+
+## Building a PCP from GKR
+
+The construction is, at heart, one move: **GKR is public-coin, so its prover's entire strategy is a function of the verifier's coins — write that function down.**
+
+<Flow
+  layers={[
+    { nodes: [{ label: '3SAT instance', subTex: '\\phi,\\ w \\text{ with } \\phi(w)=1' }] },
+    { nodes: [{ label: 'Verification circuit', sub: 'depth O(log S), logspace uniform' }] },
+    { nodes: [{ label: 'Arithmetize over F', subTex: '\\widetilde{C}(w) = 1' }] },
+    { group: 'interactive', nodes: [{ label: 'GKR', sub: 'layer sum-checks + line reduction', variant: 'accent' }] },
+    { nodes: [{ label: 'Write down the transcript tree', subTex: '|\\pi| = 2^{\\mathrm{polylog}(n)}', variant: 'store' }] },
+    { nodes: [{ label: 'PCP', sub: 'read one root-to-leaf path', variant: 'accent' }] },
+  ]}
+/>
+
+### Step 1 — Start from an $\mathsf{NP}$ witness
+
+Take $\phi \in 3\mathsf{SAT}$ on variables $x_1, \ldots, x_n$ and a satisfying assignment $w$. The goal is to replace $w$ by a proof $\pi$ that is checkable by reading a small portion of it.
+
+### Step 2 — Turn the verifier into a low-depth circuit
+
+Verification of a 3CNF is already shallow. Each clause is an OR of three literals (depth $2$), and the formula is the AND of all $\mathrm{poly}(n)$ clauses — an AND-tree of fan-in $2$, hence depth $O(\log n)$. So there is a circuit
+
+$$
+C : \{0,1\}^{n} \to \{0,1\},
+\qquad
+\phi \text{ satisfiable} \iff \exists\, w,\ C(w) = 1,
+$$
+
+of size $S = \mathrm{poly}(n)$ and depth
+
+$$
+\mathrm{depth}(C) = O(\log S).
+$$
+
+For a general $\mathsf{NP}$ relation, apply formula balancing (Spira) to get the same $O(\log S)$ depth. Depth is the resource GKR charges for, so this is the step that makes everything else affordable.
+
+<Callout type="note" title="Where the circuit description lives">
+$C$ depends on $\phi$, and the GKR verifier must evaluate the wiring predicates $\widetilde{\mathrm{add}}$, $\widetilde{\mathrm{mult}}$ without reading a circuit of size $S$. This is exactly the universal-circuit / logspace-uniformity argument from the [GKR note](/notes/gkr-protocol): $\phi$ is part of the input $x$, which the PCP verifier is allowed to read in full. Only $\pi$ is rationed.
+</Callout>
+
+### Step 3 — Arithmetize
+
+Fix a finite field $\mathbb{F}$ and a subset $H \subseteq \mathbb{F}$ with $\{0,1\} \subseteq H$, and replace each Boolean gate by its arithmetic form:
+
+$$
+\mathrm{OR}(a,b) = a + b - ab,
+\qquad
+\mathrm{AND}(a,b) = ab,
+\qquad
+\mathrm{NOT}(a) = 1 - a.
+$$
+
+Each of these is built from a constant number of field additions and multiplications, so $C$ becomes an arithmetic circuit $\widetilde{C}$ of the same depth up to a constant factor, agreeing with $C$ on Boolean inputs. The statement is now
+
+$$
+\widetilde{C}(w) = 1 .
+$$
+
+This is the same arithmetization used for $\#\mathsf{SAT}$ in the [sum-check note](/notes/interactive-proofs-sum-check).
+
+Index the $S$ gates of a layer by $H^m$ with
+
+$$
+m = \log_{|H|} S ,
+$$
+
+so a layer-value function is $V_i : H^m \to \mathbb{F}$ and its low-degree extension $\widetilde{V}_i : \mathbb{F}^m \to \mathbb{F}$ has individual degree $< |H|$, hence total degree $< m|H|$. Taking $H = \{0,1\}$ recovers the multilinear setting of the GKR note with $m = \log_2 S$.
+
+### Step 4 — Run GKR
+
+GKR gives an interactive proof for $\widetilde{C}(w) = 1$. The verifier reduces the output claim
+
+$$
+\widetilde{V}_0(z_0) = v_0
+$$
+
+to a claim $\widetilde{V}_1(z_1) = v_1$ about the next layer, then to $\widetilde{V}_2(z_2) = v_2$, and so on down to the input layer. Each reduction is a pair of sum-checks run with shared randomness, followed by the line reduction that collapses the two resulting evaluations into one.
+
+### Step 5 — Delete the interaction
+
+GKR is **public-coin**: every verifier message is just a fresh random string. So the prover's next message is a function of the coins tossed so far and nothing else. Rather than waiting to be asked, the prover writes down its answer for *every* coin sequence at once.
+
+The proof string $\pi$ therefore has three parts.
+
+1. **The witness table** $\pi_W$: the claimed low-degree extension
+
+$$
+\widetilde{W} : \mathbb{F}^m \to \mathbb{F},
+$$
+
+listed at every point of $\mathbb{F}^m$. This is what replaces "the verifier knows the input layer" — the input layer contains $w$, which the verifier cannot read.
+
+2. **The line table** $\pi_L$: for every line $\ell \subseteq \mathbb{F}^m$, a univariate polynomial of degree $< m|H|$, claimed to be $\widetilde{W}|_{\ell}$. This exists only to support the low-degree test of Step 7.
+
+3. **The transcript tree** $\pi_G$: for every round $i \in [d]$ and every partial coin sequence — the layer challenges $z \in \mathbb{F}^m$ and the sum-check challenges $(r_1, \ldots, r_{3m})$ — the message GKR's prover would have sent.
+
+$\pi_G$ is a tree of degree $|\mathbb{F}|$ and depth $O(dm)$, so it is huge but shallow. Its size is $2^{\rho}$ where $\rho$ is GKR's total randomness, which is $\mathrm{polylog}(n)$ for a $\mathrm{polylog}$-depth circuit — giving $|\pi| = 2^{\mathrm{polylog}(n)}$, quasi-polynomial. This is consistent with the $N \le q \cdot 2^r$ bound above, and it is precisely why getting down to the true PCP theorem requires more: locally testable codes, better algebraic encodings, and **proof composition** applied to this quasi-polynomial object.
+
+### Step 6 — Simulate GKR by oracle queries
+
+The verifier tosses all of GKR's coins up front and then walks a single root-to-leaf path of $\pi_G$:
+
+- whenever GKR's verifier would have received a sum-check message, it reads the corresponding location of $\pi_G$;
+- whenever it would have received a claimed value $\widetilde{V}_i(z)$, it reads that location;
+- when the recursion reaches the input layer, it needs $\widetilde{V}_d(z_d)$. This splits into a part determined by the public input $x$ — which it computes itself — and a part depending on the witness, which it obtains by querying $\widetilde{W}$ in $\pi_W$.
+
+It then performs exactly the consistency checks a GKR verifier performs. The model has moved from
+
+$$
+\text{Verifier} \longleftrightarrow \text{Prover}
+\qquad\text{to}\qquad
+\text{Verifier} \xrightarrow{\ \text{queries}\ } \pi .
+$$
+
+<Callout type="note" title="Why this is non-adaptive">
+Every index read is a function of the coins alone. The path through $\pi_G$ is indexed by coin prefixes. And the evaluation points are coin-determined too: the sum-check endpoints $(r_p, r_1, r_2)$ are verifier challenges, and the next layer challenge is $z_{i+1} = \ell(\tau) = r_2 + \tau(r_1 - r_2)$ — a function of challenges only, never of a prover message. So $V_1$ can output the whole query list before reading anything. This is the technical content of "no price for non-adaptivity" here.
+</Callout>
+
+**Completeness** is $1$, inherited from GKR: an honest prover's tree makes every check pass with certainty.
+
+---
+
+## Soundness of the Construction
+
+Suppose $\phi$ is unsatisfiable and fix any $\pi^*$. Assume for the moment that $\pi_W$ really is a low-degree polynomial (Step 7 removes this assumption). Then $\pi_W$ *defines* a witness
+
+$$
+w^* = \widetilde{W}\big|_{H^m},
+$$
+
+and since $\phi$ is unsatisfiable, $\widetilde{C}(w^*) \ne 1$. So the output claim is false while the input claim the recursion lands on is true, and by the GKR soundness argument there must be some layer at which a false claim was converted into a true one — that is, some sum-check in which the prover cheated successfully.
+
+There are $2d$ sum-checks (two per layer, $d$ layers), each over
+
+$$
+(p, w_1, w_2) \in H^{3m}
+$$
+
+that is, $3m$ variables, with per-variable degree $O(|H|)$ since every low-degree extension is taken over $H$. The sum-check soundness bound gives, for a single execution,
+
+$$
+\Pr[\text{one sum-check is cheated}] \ \le\ \frac{3m \cdot O(|H|)}{|\mathbb{F}|}.
+$$
+
+A union bound over all $2d$ of them yields
+
+$$
+\Pr[\text{any sum-check is cheated}] \ \le\ \frac{2d \cdot 3m \cdot O(|H|)}{|\mathbb{F}|}
+\ =\ O\!\left(\frac{d\, m\, |H|}{|\mathbb{F}|}\right).
+$$
+
+Choosing $|\mathbb{F}| = \mathrm{poly}(d, m, |H|)$ large enough drives this below any constant. The remaining error terms — low-degree testing and self-correction — are accounted for next.
+
+---
+
+## Low-Degree Testing
+
+Everything above rests on an assumption we have no right to: that the oracle's witness table $\pi_W$ is a low-degree polynomial. A cheating prover writes down whatever function it likes. If $\pi_W$ is arbitrary, there is no string $w^*$ to decode, the "implicit witness" step of the soundness argument evaporates, and the sum-check guarantees say nothing.
+
+<Callout type="tip" title="Key idea">
+Encode the witness as a low-degree polynomial, then make the prover *prove* that its oracle is **close** to one. Closeness is all we can hope for — a cheating oracle can always corrupt a few points undetectably — and closeness turns out to be enough, because a corrupted point can be repaired by reading elsewhere.
+</Callout>
+
+### Distance and the code
+
+<Definition title="δ-closeness">
+For $f, g : \mathbb{F}^m \to \mathbb{F}$, write
+
+$$
+\Delta(f,g) = \Pr_{z \leftarrow \mathbb{F}^m}\big[f(z) \ne g(z)\big].
+$$
+
+$f$ is **$\delta$-close** to $g$ if $\Delta(f,g) \le \delta$, and $\delta$-far otherwise. Let $\mathrm{Poly}_{d}$ denote the set of $m$-variate polynomials over $\mathbb{F}$ of total degree at most $d$.
+</Definition>
+
+The reason "close to a polynomial" is a meaningful notion at all is that low-degree polynomials form an error-correcting code with large distance.
+
+<Lemma title="Unique decoding">
+Distinct $g_1, g_2 \in \mathrm{Poly}_d$ satisfy $\Delta(g_1,g_2) \ge 1 - d/|\mathbb{F}|$. Consequently, if $\delta < \tfrac{1}{2}\left(1 - d/|\mathbb{F}|\right)$, then any $f$ has **at most one** $\delta$-close $g \in \mathrm{Poly}_d$.
+</Lemma>
+
+<Proof>
+$g_1 - g_2$ is a nonzero polynomial of total degree $\le d$, so by Schwartz–Zippel it vanishes on at most a $d/|\mathbb{F}|$ fraction of $\mathbb{F}^m$; hence $g_1$ and $g_2$ agree on at most that fraction. If $f$ were $\delta$-close to both, the triangle inequality would give $\Delta(g_1,g_2) \le 2\delta < 1 - d/|\mathbb{F}|$, a contradiction. $\qquad\blacksquare$
+</Proof>
+
+So with $|\mathbb{F}| \gg d$, the phrase "*the* low-degree polynomial near $f$" is well defined.
+
+### The line-vs-point test
+
+This is what $\pi_L$ was for.
+
+<Definition title="Line-vs-point test">
+The proof contains a table $\pi_L$ assigning to each line $\ell(t) = y + t\,b$ in $\mathbb{F}^m$ a univariate polynomial $P_\ell$ of degree $\le d$, claimed to equal $f|_{\ell}$. The test:
+
+1. sample $y, b \leftarrow \mathbb{F}^m$, defining the line $\ell$;
+2. sample $t \leftarrow \mathbb{F}$;
+3. read $P_\ell$ from $\pi_L$ and $f(\ell(t))$ from $\pi_W$;
+4. accept iff $P_\ell(t) = f(\ell(t))$.
+
+Cost: $d + 2$ field elements queried, $(2m+1)\log|\mathbb{F}|$ random bits, both non-adaptive.
+</Definition>
+
+An honest $f \in \mathrm{Poly}_d$ passes with probability $1$, since restricting a total-degree-$d$ polynomial to a line gives a univariate polynomial of degree $\le d$. The content is the converse.
+
+<Theorem title="Low-degree test (Rubinfeld–Sudan; Arora–Safra; Arora–Lund–Motwani–Sudan–Szegedy; Arora–Sudan)">
+There is a constant $\delta_0 > 0$ such that, whenever $|\mathbb{F}| \ge \mathrm{poly}(d, m)$: if the line-vs-point test accepts with probability at least $1 - \delta$ for some $\delta \le \delta_0$, then there exists $g \in \mathrm{Poly}_d$ with
+
+$$
+\Delta(f, g) = O(\delta).
+$$
+
+Equivalently: if $f$ is $\Omega(\delta)$-far from every degree-$d$ polynomial, the test rejects with probability $\Omega(\delta)$.
+</Theorem>
+
+Repeating the test $O(1)$ times makes the rejection probability a constant of our choosing, at a constant multiple of the cost.
+
+<Callout type="note" title="Total degree vs individual degree">
+For the construction above we need slightly more than "$g$ is low-degree": we need $g$ to be **the** low-degree extension of its own restriction $g|_{H^m}$, which requires individual degree $< |H|$ in each variable — that is the uniqueness condition from [the LDE note](/notes/low-degree-extension). The corresponding **individual-degree test** restricts $f$ to random *axis-parallel* lines and checks that each restriction has degree $< |H|$; it satisfies an analogous guarantee (Friedl–Sudan, Polishchuk–Spielman). Read "low-degree test" below as the individual-degree version.
+</Callout>
+
+### Self-correction
+
+The test only gives closeness, but the sum-check analysis needs the verifier's queries to be answered *by $g$ itself*. A single query to $f$ might land on one of the corrupted points — and an adversary will place the corruptions exactly where the protocol looks. Self-correction removes the gap.
+
+<Lemma title="Self-correction">
+Suppose $f$ is $\delta$-close to $g \in \mathrm{Poly}_d$. There is a randomized procedure making $d+1$ non-adaptive queries to $f$ that, on any input $z \in \mathbb{F}^m$, outputs $g(z)$ with probability at least $1 - (d+1)\delta$.
+</Lemma>
+
+<Proof>
+Sample $b \leftarrow \mathbb{F}^m$ and fix distinct nonzero $t_1, \ldots, t_{d+1} \in \mathbb{F}$. Query
+
+$$
+f(z + t_i b), \qquad i = 1, \ldots, d+1,
+$$
+
+interpolate the unique univariate $Q$ of degree $\le d$ through the pairs $(t_i, f(z+t_i b))$, and output $Q(0)$.
+
+For each fixed $t_i \ne 0$, the point $z + t_i b$ is **uniformly distributed** over $\mathbb{F}^m$ as $b$ ranges uniformly. So $\Pr[f(z + t_i b) \ne g(z + t_i b)] \le \delta$, and by a union bound all $d+1$ answers equal $g$'s values with probability $\ge 1 - (d+1)\delta$. In that event $Q$ agrees with the univariate polynomial $t \mapsto g(z + tb)$ — degree $\le d$ — at $d+1$ points, hence is equal to it, so
+
+$$
+Q(0) = g(z). \qquad\blacksquare
+$$
+</Proof>
+
+Two things make this work, and both are worth naming. First, $z$ itself is never queried, so a corruption planted at $z$ is irrelevant. Second, the queries are individually uniform, so the adversary cannot aim its corruptions at them. Taking $\delta = O(1/d)$ — achievable by repeating the low-degree test — makes the failure probability a small constant, and $O(1)$ independent repetitions with a majority vote drives it to anything we like.
+
+An equivalent implementation reuses $\pi_L$: query the line table at a random line through $z$ and evaluate $P_\ell$ at $z$'s parameter, checking $P_\ell$ against $f$ at one other random point.
+
+### Putting the pieces together
+
+The verifier's full check is:
+
+1. **Low-degree test** on $\pi_W$ (repeated $O(1)$ times), rejecting unless $\pi_W$ is $\delta$-close to some $g$ of individual degree $< |H|$.
+2. **Decode** the implicit witness $w^* = g|_{H^m}$ — never explicitly, but it is well defined by the uniqueness lemma, and that is all soundness needs.
+3. **Simulate GKR** along a path of $\pi_G$, answering every witness query by *self-corrected* access to $g$ rather than raw access to $\pi_W$.
+4. **Accept** iff every GKR check and every test passes.
+
+The total soundness error is
+
+$$
+\underbrace{O\!\left(\frac{d\,m\,|H|}{|\mathbb{F}|}\right)}_{\text{sum-checks}}
+\;+\;
+\underbrace{O(\delta)}_{\text{low-degree test}}
+\;+\;
+\underbrace{O\big((d+1)\delta\big)}_{\text{self-correction}},
+$$
+
+and each term is tunable below $1/6$ by enlarging $\mathbb{F}$ and repeating the tests a constant number of times — giving $s \le 1/2$ with $c = 1$.
+
+<Callout type="warning" title="Booleanity">
+One subtlety: $w^* = g|_{H^m}$ is a vector of *field elements*, and $\widetilde{C}$ is an arithmetic circuit that may well evaluate to $1$ on non-Boolean inputs even when $\phi$ is unsatisfiable. The fix is to prove a slightly larger statement — append to $C$ a subcircuit checking
+
+$$
+\bigwedge_{i} \big(w_i (1 - w_i) = 0\big),
+$$
+
+an AND-tree of depth $O(\log S)$, so the depth bound survives. Now $\widetilde{C}(w^*) = 1$ forces $w^*$ to be a genuine Boolean satisfying assignment.
+</Callout>
+
+---
+
+## Cost Accounting
+
+With $H = \{0,1\}$, $m = \log S$, $d = O(\log S)$ and $|\mathbb{F}| = \mathrm{poly}(m, d)$:
+
+- **Randomness:** $O(d \cdot m \cdot \log|\mathbb{F}|)$ for the GKR path, plus $O(m \log |\mathbb{F}|)$ per test — total $\mathrm{polylog}(n)$.
+- **Queries:** $O(d \cdot m \cdot |H|)$ field elements along the transcript path, plus $O(m|H|)$ for the tests and self-correction — total $\mathrm{polylog}(n)$.
+- **Proof length:** $2^{\mathrm{polylog}(n)}$, dominated by the transcript tree and the tables $\pi_W, \pi_L$ of size $|\mathbb{F}|^{m}$ and $|\mathbb{F}|^{2m}$.
+- **Completeness / soundness:** $c = 1$, $s \le 1/2$.
+
+which is the theorem stated at the top:
+
+$$
+\boxed{\;\mathsf{NP} \subseteq \mathsf{PCP}_{1,\,1/2}\big[\mathrm{polylog}(n),\ \mathrm{polylog}(n)\big].\;}
+$$
+
+Getting from here to $\mathsf{PCP}_{1,1/2}[O(\log n), O(1)]$ — polynomial length, constant queries — is the actual PCP theorem, and needs the tools listed earlier: locally testable codes, sharper algebraic encodings, and proof composition, which recursively applies a PCP to the *verifier's own check* to shrink the query count layer by layer.
+
+---
+
+## Toward Succinct Arguments
+
+A PCP is not yet useful on its own: the proof is longer than the witness, and the prover still has to write it down somewhere the verifier can query. The payoff comes from relaxing soundness.
+
+<Callout type="tip" title="The relaxation">
+So far soundness has been **statistical** — no $\pi^*$ whatsoever fools the verifier. Weakening this to **computational** soundness — no *polynomial-time* prover can produce a fooling proof, unless it breaks a cryptographic assumption — buys succinctness that statistical soundness cannot give.
+</Callout>
+
+The classical route (Kilian, then Micali):
+
+1. The prover builds the PCP $\pi$ but sends only the **Merkle root** of it, a single hash — a binding commitment to all $2^{\mathrm{polylog}}$ symbols.
+2. The verifier sends its coins.
+3. The prover opens exactly the $q$ queried locations, each with its authentication path.
+4. The verifier checks the paths against the root and runs $V_2$.
+
+Total communication is $q \cdot \mathrm{polylog}$ hash values — **succinct**, independent of the witness length. Soundness is now computational: to answer inconsistently the prover must find a hash collision. Applying **Fiat–Shamir** to derive the coins from the root removes the interaction entirely, giving a non-interactive succinct argument — the path already sketched at the end of the [GKR note](/notes/gkr-protocol) and in the roadmap of the [sum-check note](/notes/interactive-proofs-sum-check).
+
+<Callout type="note" title="Why the relaxation is necessary">
+Statistically sound proofs for $\mathsf{NP}$ with communication far below the witness length would collapse complexity classes. Computational soundness sidesteps that barrier: the "proof" $\pi$ still exists in full, it is simply never transmitted — only cryptographically pinned down and spot-checked. The PCP is what makes spot-checking meaningful in the first place.
+</Callout>
