@@ -1,15 +1,7 @@
 ---
 title: "Probabilistically Checkable Proofs"
 date: "2026-08-10"
-tags:
-  [
-    "complexity-theory",
-    "interactive-proofs",
-    "pcp",
-    "gkr",
-    "low-degree-testing",
-    "succinct-arguments",
-  ]
+tags: ["proof-systems", "complexity-theory"]
 summary: "A proof you can check by reading a handful of symbols. The definition of PCP, why the verifier is non-adaptive, and a full construction from GKR — write the whole public-coin transcript tree down as a string, query one path through it, and close the last gap with a low-degree test plus self-correction."
 ---
 
@@ -483,7 +475,7 @@ The classical route (Kilian, then Micali):
 3. The prover opens exactly the $q$ queried locations, each with its authentication path.
 4. The verifier checks the paths against the root and runs $V_2$.
 
-Total communication is $q \cdot \mathrm{polylog}$ hash values — **succinct**, independent of the witness length. Soundness is now computational: to answer inconsistently the prover must find a hash collision. Applying **Fiat–Shamir** to derive the coins from the root removes the interaction entirely, giving a non-interactive succinct argument — the path already sketched at the end of the [GKR note](/notes/gkr-protocol) and in the roadmap of the [sum-check note](/notes/interactive-proofs-sum-check).
+Total communication is $q \cdot \mathrm{polylog}$ hash values — **succinct**, independent of the witness length. Soundness is now computational: to answer inconsistently the prover must find a hash collision. Applying **Fiat–Shamir** to derive the coins from the root removes the interaction entirely, giving a non-interactive succinct argument.
 
 <Callout type="note" title="Why the relaxation is necessary">
 Statistically sound proofs for $\mathsf{NP}$ with communication far below the witness length would collapse complexity classes. Computational soundness sidesteps that barrier: the "proof" $\pi$ still exists in full, it is simply never transmitted — only cryptographically pinned down and spot-checked. The PCP is what makes spot-checking meaningful in the first place.
