@@ -203,7 +203,7 @@ Let $f : \mathbb{F}^m \to \mathbb{F}$ be a polynomial of degree at most $d$ in e
 $$
 \textstyle\sum_{h \in H} g_i(h) = g_{i-1}(t_{i-1}),
 $$
-and draws one random field element. Each of these costs $O(d)$, for $O(md)$ across all rounds. After the last round the verifier makes one oracle query to evaluate $f(t_1, \dots, t_m)$, costing $T$. In total, $O(md) + T$.
+and draws one random field element. Each of these costs $O(d)$ — see the [appendix](#appendix-why-each-round-costs-od) — for $O(md)$ across all rounds. After the last round the verifier makes one oracle query to evaluate $f(t_1, \dots, t_m)$, costing $T$. In total, $O(md) + T$.
 
 *Prover runtime.* In round $i$ the prover computes
 $$
@@ -293,3 +293,33 @@ Running sum-check on this instance gives a verifier that works in time polynomia
 $$
 \frac{n \cdot S}{|\mathbb{F}|}.
 $$
+
+---
+
+## Appendix: Why Each Round Costs O(d)
+
+A univariate polynomial of degree at most $d$ *is* its list of $d+1$ coefficients,
+
+$$
+g(X) = c_0 + c_1 X + \cdots + c_d X^{d},
+$$
+
+so every operation the verifier performs on $g_i$ is linear in $d$.
+
+**Reading it.** The prover sends $d+1$ field elements, and checking $\deg g_i \le d$ is just seeing that no higher coefficient arrived — $O(d)$.
+
+**Adding two polynomials.** Coefficientwise: $d+1$ field additions.
+
+**Evaluating at one point.** By Horner's rule,
+
+$$
+g(t) = c_0 + t\big(c_1 + t(c_2 + \cdots + t\,c_d)\big),
+$$
+
+which is $d$ multiplications and $d$ additions — $O(d)$ field operations, with no need to compute the powers $t^k$ separately.
+
+Each round the verifier does a constant number of these — read $g_i$, form the identity check, evaluate $g_i$ at the challenge $t_i$ — so a round is $O(d)$ and all $m$ rounds are $O(md)$. The point is what does *not* appear: the verifier never touches an object of size $|H|^m$, which is precisely the sum it is being convinced of.
+
+<Callout type="note" title="The hidden |H| factor">
+The identity check $\sum_{h \in H} g_i(h) = g_{i-1}(t_{i-1})$ is $|H|$ separate evaluations, so strictly it costs $O(|H|d)$ per round and $O(m|H|d)$ overall. The stated bound absorbs $|H| = O(1)$, as in the Boolean case $H = \{0,1\}$ used throughout the applications above. For large $H$ the factor should be carried explicitly.
+</Callout>

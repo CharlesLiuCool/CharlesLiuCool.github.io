@@ -326,15 +326,21 @@ Two evaluations of $\widetilde{V}_{i+1}$ have been compressed into one random ev
 Instead of the line, the verifier can sample $\alpha \in \mathbb{F}$ and fold the two claims into one target $v_{i+1} = \alpha\,v_{i+1,1} + v_{i+1,2}$, then run the next layer's sum-check against $\alpha\,\widetilde{V}_{i+1}(r_1) + \widetilde{V}_{i+1}(r_2)$. Both approaches collapse two claims into one while preserving soundness; the line reduction is the one used in the original GKR protocol.
 </Callout>
 
-### Putting one layer together
+### Reduction by Layer
+
+If we organize
+$$
+\widetilde{V}_i(z_i) = \sum\limits_{w_1,w_2\in\{0,1\}^m} f_{i,z_i}(w_1,w_2)
+$$
 
 For every layer:
 
-1. Start with one claim $\widetilde{V}_i(z_i) = v_i$.
-2. Run the addition and multiplication sum-checks in parallel with shared randomness.
-3. Obtain the two evaluations $\widetilde{V}_{i+1}(r_1)$ and $\widetilde{V}_{i+1}(r_2)$.
-4. Restrict $\widetilde{V}_{i+1}$ to the line through $r_1$ and $r_2$.
-5. Sample a fresh point on that line to get one new claim $\widetilde{V}_{i+1}(z_{i+1}) = v_{i+1}$.
+1. Start with one claim $\widetilde{V}_i(z_i) = v_i$ (first layer is $V_0(0) = v_0$)
+2. Run the addition and multiplication sum-checks in parallel with shared randomness, where we need to check $f(r_1,r_2)$.
+3. $add_i$ and $mult_i$ terms can be computed locally, since they only depend on the circuit. 
+4. Receive $\widetilde{V}_{i+1}(r_1)$ and $\widetilde{V}_{i+1}(r_2)$ from the prover, check $f(r_1,r_2)$.
+5. Combine $V_{i+1}(r_1)$ and $V_{i+1}(r_2)$ into $V_{i+1}(z_{i+1}) by restrict $\widetilde{V}_{i+1}$ to the line through $r_1$ and $r_2$.
+6. Recurse into next layer
 
 Repeat down to the input layer.
 
